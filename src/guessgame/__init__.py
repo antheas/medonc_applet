@@ -19,18 +19,17 @@ def get_relative_fn(fn: str):
 
 @app.route("/")
 def index():
-    assert dataset
-
     syn = random.randint(0,1) == 1
-    patient = None
-    for _ in range(10):
-        try:
-            patient = generate_patient(dataset, syn)
-            break
-        except Exception:
-            pass
+    patient = f"No patient data (running in fake mode or generation failed)\nSynth: {syn}"
     
-    assert patient
+    if dataset:
+        for _ in range(10):
+            try:
+                patient = generate_patient(dataset, syn)
+                break
+            except Exception:
+                pass
+        
     return render_template("index.html", patient=patient, fake='true' if syn else 'false')
 
 
@@ -43,9 +42,12 @@ def main():
 
     ds_path = sys.argv[1]
     
-    global dataset
-    print(f"Loading data from:\n{ds_path}")
-    dataset = load_data(ds_path)
+    if ds_path == "skip":
+        print("Skipping dataset loading")
+    else:
+        global dataset
+        print(f"Loading data from:\n{ds_path}")
+        dataset = load_data(ds_path)
     
     app.debug = True
     app.run(
