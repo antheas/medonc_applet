@@ -2,6 +2,7 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
+
 def get_relative_fn(fn: str):
     """Returns the directory of a file relative to the script calling this function."""
     import inspect
@@ -14,15 +15,16 @@ def get_relative_fn(fn: str):
 
 @app.route("/")
 def index():
-    return render_template('index.html', name="test")
+    return render_template("index.html", name="test")
 
 
 def main():
-    # app.debug=True
+    app.debug = True
     app.run(
         host="127.0.0.1",
         port=6565,
     )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

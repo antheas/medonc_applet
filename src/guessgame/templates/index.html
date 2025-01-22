@@ -1,18 +1,100 @@
 <!DOCTYPE html>
 <html lang='en'>
 
+{% if score is not defined %}
+{% set score = 0 %}
+{% endif %}
+{% if total is not defined %}
+{% set total = 0 %}
+{% endif %}
+{% if fake is not defined %}
+{% set fake = 1 %}
+{% endif %}
+
 <head>
     <meta charset="utf-8" />
     <title>Real or Synth</title>
-    <link href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
-    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+    <link href="{{ url_for('static', filename='bootstrap-4.0.0/css/bootstrap.min.css')}}" rel="stylesheet">
     <link type="text/css" rel="stylesheet" href="{{ url_for('static',
-                filename='stylesheet.css')}}" />
+    filename='stylesheet.css')}}" />
 </head>
 
 <body>
-    <form></form>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Real or Synth</a>
+        </div>
+    </nav>
 
+    <!-- Form allows user to choose between whether the patient is real or fake. -->
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 my-3">
+            </div>
+        </div>
+        <div class="row align-items-center">
+            <div class="col-auto">
+                <button class="btn btn-primary btn-lg" id="real" onclick="">Real</button>
+                <button class="btn btn-warning btn-lg" id="fake" onclick="">Synth</button>
+                <button class="btn btn-secondary btn-lg" onclick="">Next</button>
+            </div>
+            <div class="col-auto">
+                <div class="my-1"></div>
+                <h2>Score: <span id="score"></span> <span id="time-span">Time: <span id="time"></span>s</span></h3>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <pre><code>
+                    {{patient}}
+                </code></pre>
+            </div>
+        </div>
+
+        <script src="{{ url_for('static', filename='bootstrap-4.0.0/js/bootstrap.bundle.min.js')}}"></script>
+        <script src="{{ url_for('static', filename='jquery-3.7.1.min.js')}}"></script>
+        <script>
+            `use strict`;
+
+            let score = {{ score }};
+            let total = {{ total }};
+            let countdown = 5;
+            let is_fake = {{ fake }};
+
+            $('#score').text(score + '/' + total);
+            $("#time").text(countdown);
+            // Update the time every second.
+            let interval = setInterval(() => {
+                countdown -= 1;
+                $("#time").text(countdown);
+                if (countdown < 3) {
+                    $('#time-span').addClass('text-danger');
+                }
+
+                if (countdown <= 0) {
+                    clearInterval(interval);
+
+                    $('#real').prop('disabled', true);
+                    $('#fake').prop('disabled', true);
+                    $('#fake').removeClass('btn-warning');
+                    $('#real').removeClass('btn-primary');
+                    
+                    $('#next').removeClass('btn-secondary');
+                    $('#next').addClass('btn-primary');
+
+                    if (is_fake) {
+                        $('#fake').addClass('btn-success');
+                        $('#real').addClass('btn-danger');
+                    } else {
+                        $('#real').addClass('btn-success');
+                        $('#fake').addClass('btn-danger');
+                    }
+
+                    total += 1;
+                    $('#score').text(score + '/' + total);
+                }
+            }, 1000);
+        </script>
 </body>
 
 </html>
