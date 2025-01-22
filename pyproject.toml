@@ -14,9 +14,9 @@ classifiers = [
 ]
 
 dependencies = [
-  # Core
   "flask",
   "pandas",
+  "pyarrow",
 ]
 
 [project.urls]

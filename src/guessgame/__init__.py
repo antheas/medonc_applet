@@ -1,7 +1,10 @@
 from flask import Flask, render_template
 
+from .ds import generate_patient, load_data
+
 app = Flask(__name__)
 
+dataset = None
 
 def get_relative_fn(fn: str):
     """Returns the directory of a file relative to the script calling this function."""
@@ -15,10 +18,25 @@ def get_relative_fn(fn: str):
 
 @app.route("/")
 def index():
-    return render_template("index.html", name="test")
+    assert dataset
+    patient, syn = generate_patient(dataset)
+
+    return render_template("index.html", patient=patient, fake=syn)
 
 
 def main():
+    import sys
+
+    if (len(sys.argv) < 2):
+        print("Missing pasteur dataset path. Enter guessgame <path>")
+        sys.exit(1)
+
+    ds_path = sys.argv[1]
+    
+    global dataset
+    print(f"Loading data from:\n{ds_path}")
+    dataset = load_data(ds_path)
+    
     app.debug = True
     app.run(
         host="127.0.0.1",
