@@ -11,6 +11,12 @@
     <link href="{{ url_for('static', filename='bootstrap-4.0.0/css/bootstrap.min.css')}}" rel="stylesheet">
     <link type="text/css" rel="stylesheet" href="{{ url_for('static',
     filename='stylesheet.css')}}" />
+
+    <style>
+        #patient {
+            font-size: 1.2rem;
+        }
+    </style>
 </head>
 
 <body>
@@ -50,11 +56,10 @@
                             id="time"></span>s</span></h3>
             </div>
         </div>
+        <div class="my-4"></div>
         <div class="row">
-            <div class="col-md-6">
-                <pre><code>
-                    {{patient}}
-                </code></pre>
+            <div class="col-md-12">
+                <pre id="patient">{{patient}}</pre>
             </div>
         </div>
 
@@ -68,7 +73,7 @@
             var total = parseInt(urlParams.get('total')) || 0;
 
             let countdown = 10;
-            let is_fake = {{ fake }};
+            const is_fake = {{ fake }};
             let finished = false;
 
             function set_success(failed) {

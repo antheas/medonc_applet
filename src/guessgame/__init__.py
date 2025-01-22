@@ -21,7 +21,7 @@ def index():
     assert dataset
     patient, syn = generate_patient(dataset)
 
-    return render_template("index.html", patient=patient, fake=syn)
+    return render_template("index.html", patient=patient, fake='true' if syn else 'false')
 
 
 def main():

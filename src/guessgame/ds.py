@@ -57,13 +57,13 @@ def generate_patient(ds: Datasets):
         bsa = None
         height = None
 
-        out += f'Patient born in {p.birth.year} presents with:\n- {p.primary_icd}: {p.primary_description}, Height: {p.height:.1f}{" F" if syn else ""}'
+        out += f'Patient born in {p.birth.year} presents with:\n- {p.primary_icd}: {p.primary_description}, Height: {p.height:.1f}{" F" if syn else ""}\n'
         if not math.isnan(p.height):
             height = p.height
 
         plines = lines[lines['id'] == id]
         for i, (lid, l) in enumerate(plines.iterrows()):
-            out += f'> L{i+ 1:02d}/{len(plines)}: {l.protocol}'
+            out += f'> L{i+ 1:02d}/{len(plines)}: {l.protocol}\n'
 
             for j, (uid, u) in enumerate(updates[updates['line_id'] == lid].iterrows()):
                 if not math.isnan(u.bsa):
@@ -74,7 +74,7 @@ def generate_patient(ds: Datasets):
                     wstr = f" {u.weight:5.1f}kg, {u.bsa:.2f} BSA ({u.weight_date.date()})"
                 else:
                     wstr = ''
-                out += f"  {u.date.date()} C{u.cycle:02d}D{u.day:02d}{wstr}"
+                out += f"  {u.date.date()} C{u.cycle:02d}D{u.day:02d}{wstr}\n"
 
                 for k, (mid, m) in enumerate(medicine[medicine['update_id'] == uid].iterrows()):
                     # break
@@ -94,6 +94,6 @@ def generate_patient(ds: Datasets):
                             notes = f"{notes[:start]}{dosage}{notes[end:]}"
 
                     if str(m.drug) != 'nan':
-                        out += f"   - {str(m.time.time())[:-3]}: {m.drug:>18s}  {notes}"
+                        out += f"   - {str(m.time.time())[:-3]}: {m.drug:>18s}  {notes}\n"
     
     return out, syn
