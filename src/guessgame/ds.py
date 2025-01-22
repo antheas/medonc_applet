@@ -1,7 +1,6 @@
 import re
 import math
 import os
-import random
 from typing import NamedTuple
 import pandas as pd
 
@@ -46,8 +45,7 @@ def load_data(ds_path: str):
         load_syn_data_latest(ds_path)
     )
 
-def generate_patient(ds: Datasets):
-    syn = random.randint(0,1) == 1
+def generate_patient(ds: Datasets, syn):
     out = ""
 
     patients, lines, updates, medicine = ds.syn if syn else ds.wrk
@@ -96,4 +94,4 @@ def generate_patient(ds: Datasets):
                     if str(m.drug) != 'nan':
                         out += f"   - {str(m.time.time())[:-3]}: {m.drug:>18s}  {notes}\n"
     
-    return out, syn
+    return out

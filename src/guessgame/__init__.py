@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+import random
 
 from .ds import generate_patient, load_data
 
@@ -19,8 +20,17 @@ def get_relative_fn(fn: str):
 @app.route("/")
 def index():
     assert dataset
-    patient, syn = generate_patient(dataset)
 
+    syn = random.randint(0,1) == 1
+    patient = None
+    for _ in range(10):
+        try:
+            patient = generate_patient(dataset, syn)
+            break
+        except Exception:
+            pass
+    
+    assert patient
     return render_template("index.html", patient=patient, fake='true' if syn else 'false')
 
 
