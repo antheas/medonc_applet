@@ -42,11 +42,12 @@
             <div class="col-auto">
                 <button class="btn btn-primary btn-lg" id="real" onclick="real()">Real</button>
                 <button class="btn btn-warning btn-lg" id="fake" onclick="fake()">Synth</button>
-                <button class="btn btn-secondary btn-lg" onclick="next()">Next</button>
+                <button class="btn btn-secondary btn-lg" id="next" onclick="next()">Next</button>
             </div>
             <div class="col-auto">
                 <div class="my-1"></div>
-                <h2>Score: <span id="score"></span> <span id="time-span">Time: <span id="time"></span>s</span></h3>
+                <h2><span id="score-span">Score: <span id="score"></span></span> <span id="time-span">Time: <span
+                            id="time"></span>s</span></h3>
             </div>
         </div>
         <div class="row">
@@ -70,7 +71,17 @@
             let is_fake = {{ fake }};
             let finished = false;
 
-            function show_results() {
+            function set_success(failed) {
+                if (finished) return;
+
+                if (!failed) {
+                    score += 1;
+                    $('#score').addClass('text-success');
+                } else {
+                    $('#score').addClass('text-danger');
+                }
+                total += 1;
+
                 clearInterval(interval);
 
                 $('#real').prop('disabled', true);
@@ -90,27 +101,16 @@
                 }
 
                 $('#score').text(score + '/' + total);
+                $('#time-span').text('');
                 finished = true;
             }
 
             function real() {
-                if (!finished) {
-                    if (!is_fake) {
-                        score += 1;
-                    }
-                    total += 1;
-                    show_results();
-                }
+                set_success(is_fake);
             }
 
             function fake() {
-                if (!finished) {
-                    if (is_fake) {
-                        score += 1;
-                    }
-                    total += 1;
-                    show_results();
-                }
+                set_success(!is_fake);
             }
 
             function next() {
@@ -131,8 +131,7 @@
                 }
 
                 if (countdown <= 0) {
-                    total += 1;
-                    show_results();
+                    set_success(true);
                 }
             }, 1000);
         </script>
