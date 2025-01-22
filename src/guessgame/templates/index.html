@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang='en'>
 
-{% if score is not defined %}
-{% set score = 0 %}
-{% endif %}
-{% if total is not defined %}
-{% set total = 0 %}
-{% endif %}
 {% if fake is not defined %}
 {% set fake = 1 %}
 {% endif %}
@@ -56,10 +50,34 @@
         <script>
             `use strict`;
 
-            let score = {{ score }};
-            let total = {{ total }};
+            var urlParams = new URLSearchParams(window.location.search);
+            var score = parseInt(urlParams.get('score')) || 0;
+            var total = parseInt(urlParams.get('total')) || 0;
+
             let countdown = 5;
             let is_fake = {{ fake }};
+
+            function show_results() {
+                clearInterval(interval);
+
+                $('#real').prop('disabled', true);
+                $('#fake').prop('disabled', true);
+                $('#fake').removeClass('btn-warning');
+                $('#real').removeClass('btn-primary');
+
+                $('#next').removeClass('btn-secondary');
+                $('#next').addClass('btn-primary');
+
+                if (is_fake) {
+                    $('#fake').addClass('btn-success');
+                    $('#real').addClass('btn-danger');
+                } else {
+                    $('#real').addClass('btn-success');
+                    $('#fake').addClass('btn-danger');
+                }
+
+                $('#score').text(score + '/' + total);
+            }
 
             $('#score').text(score + '/' + total);
             $("#time").text(countdown);
@@ -67,31 +85,13 @@
             let interval = setInterval(() => {
                 countdown -= 1;
                 $("#time").text(countdown);
-                if (countdown < 3) {
+                if (countdown <= 3) {
                     $('#time-span').addClass('text-danger');
                 }
 
                 if (countdown <= 0) {
-                    clearInterval(interval);
-
-                    $('#real').prop('disabled', true);
-                    $('#fake').prop('disabled', true);
-                    $('#fake').removeClass('btn-warning');
-                    $('#real').removeClass('btn-primary');
-                    
-                    $('#next').removeClass('btn-secondary');
-                    $('#next').addClass('btn-primary');
-
-                    if (is_fake) {
-                        $('#fake').addClass('btn-success');
-                        $('#real').addClass('btn-danger');
-                    } else {
-                        $('#real').addClass('btn-success');
-                        $('#fake').addClass('btn-danger');
-                    }
-
                     total += 1;
-                    $('#score').text(score + '/' + total);
+                    show_results();
                 }
             }, 1000);
         </script>
