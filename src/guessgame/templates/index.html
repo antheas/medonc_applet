@@ -16,7 +16,19 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">Real or Synth</a>
+            <a class="navbar-brand" href="/">Real or Synth</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">New Game</a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
 
@@ -28,9 +40,9 @@
         </div>
         <div class="row align-items-center">
             <div class="col-auto">
-                <button class="btn btn-primary btn-lg" id="real" onclick="">Real</button>
-                <button class="btn btn-warning btn-lg" id="fake" onclick="">Synth</button>
-                <button class="btn btn-secondary btn-lg" onclick="">Next</button>
+                <button class="btn btn-primary btn-lg" id="real" onclick="real()">Real</button>
+                <button class="btn btn-warning btn-lg" id="fake" onclick="fake()">Synth</button>
+                <button class="btn btn-secondary btn-lg" onclick="next()">Next</button>
             </div>
             <div class="col-auto">
                 <div class="my-1"></div>
@@ -54,8 +66,9 @@
             var score = parseInt(urlParams.get('score')) || 0;
             var total = parseInt(urlParams.get('total')) || 0;
 
-            let countdown = 5;
+            let countdown = 10;
             let is_fake = {{ fake }};
+            let finished = false;
 
             function show_results() {
                 clearInterval(interval);
@@ -77,6 +90,34 @@
                 }
 
                 $('#score').text(score + '/' + total);
+                finished = true;
+            }
+
+            function real() {
+                if (!finished) {
+                    if (!is_fake) {
+                        score += 1;
+                    }
+                    total += 1;
+                    show_results();
+                }
+            }
+
+            function fake() {
+                if (!finished) {
+                    if (is_fake) {
+                        score += 1;
+                    }
+                    total += 1;
+                    show_results();
+                }
+            }
+
+            function next() {
+                if (!finished) {
+                    total += 1;
+                }
+                window.location.href = '/?score=' + score + '&total=' + total;
             }
 
             $('#score').text(score + '/' + total);
