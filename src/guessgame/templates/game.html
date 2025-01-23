@@ -32,7 +32,7 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2">
+                <ul class="navbar-nav me-auto mb-0">
                     <li class="nav-item">
                         <a class="nav-link" href="/">New Game</a>
                     </li>
@@ -69,11 +69,8 @@
             </div>
         </div>
 
-        {# <canvas id="canvas"></canvas> #}
-
         <script src="{{ url_for('static', filename='bootstrap-4.0.0/js/bootstrap.bundle.min.js')}}"></script>
         <script src="{{ url_for('static', filename='jquery-3.7.1.min.js')}}"></script>
-        <script src="{{ url_for('static', filename='qrcode-1.5.4.js')}}"></script>
         <script>
             `use strict`;
 
@@ -85,11 +82,6 @@
             var score = 0;
             var total = results.length;
             var result = '';
-
-            // QRCode.toCanvas(document.getElementById('canvas'), 'sample text', function (error) {
-            //     if (error) console.error(error)
-            //     console.log('success!');
-            // })
 
             for (let i = 0; i < total; i++) {
                 if (results[i] === 'c' || results[i] === 'C') {
