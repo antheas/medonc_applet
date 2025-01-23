@@ -5,6 +5,13 @@
 {% set fake = 1 %}
 {% endif %}
 
+{% if dataset is not defined %}
+{% set dataset = unknown %}
+{% endif %}
+
+{# correct wrong timeout skip #}
+{# Uppercase: synth, lowercase: real #}
+
 <head>
     <meta charset="utf-8" />
     <title>Real or Synth</title>
@@ -69,8 +76,16 @@
             `use strict`;
 
             var urlParams = new URLSearchParams(window.location.search);
-            var score = parseInt(urlParams.get('score')) || 0;
-            var total = parseInt(urlParams.get('total')) || 0;
+            var results = urlParams.get('res') || '';
+            var score = 0;
+            var total = results.length;
+            var result = '';
+
+            for (let i = 0; i < total; i++) {
+                if (results[i] === 'c' || results[i] === 'C') {
+                    score += 1;
+                }
+            }
 
             let countdown = 10;
             const is_fake = {{ fake }};
@@ -111,18 +126,21 @@
             }
 
             function real() {
+                result = is_fake ? 'W' : 'c';
                 set_success(is_fake);
             }
 
             function fake() {
+                result = is_fake ? 'C' : 'w';
                 set_success(!is_fake);
             }
 
             function next() {
                 if (!finished) {
                     total += 1;
+                    result = is_fake ? 'S' : 's';
                 }
-                window.location.href = '/?score=' + score + '&total=' + total;
+                window.location.href = '/?res=' + results + result;
             }
 
             $('#score').text(score + '/' + total);
@@ -136,6 +154,7 @@
                 }
 
                 if (countdown <= 0) {
+                    result = is_fake ? 'T' : 't';
                     set_success(true);
                 }
             }, 1000);
