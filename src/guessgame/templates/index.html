@@ -5,8 +5,11 @@
 {% set fake = 1 %}
 {% endif %}
 
-{% if dataset is not defined %}
-{% set dataset = unknown %}
+{% if datasets is not defined %}
+{% set datasets = ({ "med-e1": "MedOnc e=1", "med-e10": "MedOnc e=10", "med-e100": "MedOnc e=100" }) %}
+{% endif %}
+{% if tries is not defined %}
+{% set tries = [5,30,100] %}
 {% endif %}
 
 {# correct wrong timeout skip #}
@@ -30,45 +33,55 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="/">Real or Synth</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-                aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">New Game</a>
-                    </li>
-                </ul>
-            </div>
         </div>
     </nav>
 
-    <!-- Form allows user to choose between whether the patient is real or fake. -->
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12 my-3">
-            </div>
-        </div>
-        <div class="row align-items-center">
+    <div class="container align-items-center">
+        <form class="row needs-validation justify-content-center my-5" action="/game" method="get">
             <div class="col-auto">
-                <button class="btn btn-primary btn-lg" id="real" onclick="real()">Real</button>
-                <button class="btn btn-warning btn-lg" id="fake" onclick="fake()">Synth</button>
-                <button class="btn btn-secondary btn-lg" id="next" onclick="next()">Next</button>
+                <div class="card" style="width: 18rem;">
+                    <div class="card-body">
+                        <h5 class="card-title">Experiment Setup</h5>
+
+                        <div class="dropdown-divider"></div>
+                        <h6 class="card-subtitle mb-2 mt-3 text-muted">Dataset Selection</h6>
+
+                        {% for dataset in datasets %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="dataset" id="{{dataset}}"
+                                value="{{dataset}}" {% if loop.last %} checked {% endif %}>
+                            <label class="form-check-label" for="{{dataset}}">
+                                {{ datasets[dataset] }}
+                            </label>
+                        </div>
+                        {% endfor %}
+
+                        <div class="dropdown-divider"></div>
+                        <h6 class="card-subtitle mb-2 mt-3 text-muted">Tries</h6>
+
+                        {% for try in tries %}
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="tries" id="try-{{try}}" value="{{try}}"
+                                {% if loop.last %} checked {% endif %}>
+                            <label class="form-check-label" for="{{try}}">{{try}}</label>
+                        </div>
+                        {% endfor %}
+
+                        <div class="dropdown-divider"></div>
+
+                        <div class="input-group my-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="inputGroup-sizing-default">Name</span>
+                            </div>
+                            <input type="text" class="form-control" aria-label="Default" id="name" name="name"
+                                aria-describedby="inputGroup-sizing-default" required>
+                        </div>
+                        <div class="dropdown-divider"></div>
+                        <input class="btn btn-primary float-right" type="submit" value="Begin">
+                    </div>
+                </div>
             </div>
-            <div class="col-auto">
-                <div class="my-1"></div>
-                <h2><span id="score-span">Score: <span id="score"></span></span> <span id="time-span">Time: <span
-                            id="time"></span>s</span></h3>
-            </div>
-        </div>
-        <div class="my-4"></div>
-        <div class="row">
-            <div class="col-md-12">
-                <pre id="patient">{{patient}}</pre>
-            </div>
-        </div>
+        </form>
 
         {# <canvas id="canvas"></canvas> #}
 
@@ -78,94 +91,7 @@
         <script>
             `use strict`;
 
-            var urlParams = new URLSearchParams(window.location.search);
-            var results = urlParams.get('res') || '';
-            var score = 0;
-            var total = results.length;
-            var result = '';
 
-            // QRCode.toCanvas(document.getElementById('canvas'), 'sample text', function (error) {
-            //     if (error) console.error(error)
-            //     console.log('success!');
-            // })
-
-            for (let i = 0; i < total; i++) {
-                if (results[i] === 'c' || results[i] === 'C') {
-                    score += 1;
-                }
-            }
-
-            let countdown = 10;
-            const is_fake = {{ fake }};
-            let finished = false;
-
-            function set_success(failed) {
-                if (finished) return;
-
-                if (!failed) {
-                    score += 1;
-                    $('#score').addClass('text-success');
-                } else {
-                    $('#score').addClass('text-danger');
-                }
-                total += 1;
-
-                clearInterval(interval);
-
-                $('#real').prop('disabled', true);
-                $('#fake').prop('disabled', true);
-                $('#fake').removeClass('btn-warning');
-                $('#real').removeClass('btn-primary');
-
-                $('#next').removeClass('btn-secondary');
-                $('#next').addClass('btn-primary');
-
-                if (is_fake) {
-                    $('#fake').addClass('btn-success');
-                    $('#real').addClass('btn-danger');
-                } else {
-                    $('#real').addClass('btn-success');
-                    $('#fake').addClass('btn-danger');
-                }
-
-                $('#score').text(score + '/' + total);
-                $('#time-span').text('');
-                finished = true;
-            }
-
-            function real() {
-                result = is_fake ? 'W' : 'c';
-                set_success(is_fake);
-            }
-
-            function fake() {
-                result = is_fake ? 'C' : 'w';
-                set_success(!is_fake);
-            }
-
-            function next() {
-                if (!finished) {
-                    total += 1;
-                    result = is_fake ? 'S' : 's';
-                }
-                window.location.href = '/?res=' + results + result;
-            }
-
-            $('#score').text(score + '/' + total);
-            $("#time").text(countdown);
-            // Update the time every second.
-            let interval = setInterval(() => {
-                countdown -= 1;
-                $("#time").text(countdown);
-                if (countdown <= 3) {
-                    $('#time-span').addClass('text-danger');
-                }
-
-                if (countdown <= 0) {
-                    result = is_fake ? 'T' : 't';
-                    set_success(true);
-                }
-            }, 1000);
         </script>
 </body>
 

@@ -7,6 +7,7 @@ app = Flask(__name__)
 
 dataset = None
 
+
 def get_relative_fn(fn: str):
     """Returns the directory of a file relative to the script calling this function."""
     import inspect
@@ -19,9 +20,16 @@ def get_relative_fn(fn: str):
 
 @app.route("/")
 def index():
-    syn = random.randint(0,1) == 1
-    patient = f"No patient data (running in fake mode or generation failed)\nSynth: {syn}"
-    
+    return render_template("index.html")
+
+
+@app.route("/game")
+def game():
+    syn = random.randint(0, 1) == 1
+    patient = (
+        f"No patient data (running in fake mode or generation failed)\nSynth: {syn}"
+    )
+
     if dataset:
         for _ in range(10):
             try:
@@ -29,26 +37,28 @@ def index():
                 break
             except Exception:
                 pass
-        
-    return render_template("index.html", patient=patient, fake='true' if syn else 'false')
+
+    return render_template(
+        "game.html", patient=patient, fake="true" if syn else "false"
+    )
 
 
 def main():
     import sys
 
-    if (len(sys.argv) < 2):
+    if len(sys.argv) < 2:
         print("Missing pasteur dataset path. Enter guessgame <path>")
         sys.exit(1)
 
     ds_path = sys.argv[1]
-    
+
     if ds_path == "skip":
         print("Skipping dataset loading")
     else:
         global dataset
         print(f"Loading data from:\n{ds_path}")
         dataset = load_data(ds_path)
-    
+
     app.debug = True
     app.run(
         host="127.0.0.1",
