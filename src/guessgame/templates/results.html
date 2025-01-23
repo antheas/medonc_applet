@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+{% if datasets is not defined %}
+{% set datasets = ({ "med-e1": "MedOnc e=1", "med-e10": "MedOnc e=10", "med-e100": "MedOnc e=100" }) %}
+{% endif %}
+
+<head>
+    <meta charset="utf-8" />
+    <title>Real or Synth</title>
+    <link href="{{ url_for('static', filename='bootstrap-4.0.0/css/bootstrap.min.css')}}" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static',
+    filename='stylesheet.css')}}" />
+</head>
+
+<body>
+    <nav class="navbar navbar-expand navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Real or Synth</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">New Game</a>
+                    </li>
+                </ul>
+            </div>
+            <span class="navbar-text">Name: <span id="name"></span></span>
+            </span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="my-4"></div>
+        <div class="row justify-content-center my-5">
+            <div class="col-auto">
+                <div class="card" style="width: 18rem;">
+                    <div class="card-body">
+                        <h5 class="card-title">Results</h5>
+
+                        <div class="dropdown-divider"></div>
+                        <h6 class="card-subtitle mb-2 mt-3 text-muted">User</h6>
+                        <p class="card-text" id="user"></p>
+                        <h6 class="card-subtitle mb-2 mt-3 text-muted">Dataset</h6>
+                        <p class="card-text" id="dataset"></p>
+                        <h6 class="card-subtitle mb-2 mt-3 text-muted">Score</h6>
+                        <p class="card-text" id="score"></p>
+                        <h6 class="card-subtitle mb-2 mt-3 text-muted">Confusion Matrix</h6>
+
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th scope="col"></th>
+                                    <th scope="col">Real</th>
+                                    <th scope="col">Synth</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">Correct</th>
+                                    <td id="wrk-correct"></td>
+                                    <td id="syn-correct"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Wrong</th>
+                                    <td id="wrk-wrong"></td>
+                                    <td id="syn-wrong"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h6 class="card-subtitle mb-2 mt-3 text-muted">Digitized Results</h6>
+                        <canvas id="canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <script src="{{ url_for('static', filename='bootstrap-4.0.0/js/bootstrap.bundle.min.js')}}"></script>
+        <script src="{{ url_for('static', filename='jquery-3.7.1.min.js')}}"></script>
+        <script src="{{ url_for('static', filename='qrcode-1.5.4.js')}}"></script>
+        <script>
+            `use strict`;
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var results = urlParams.get('res') || '';
+            var tries = urlParams.get('tries') || 0;
+            var name = urlParams.get('name') || 'Unknown';
+            var dataset = urlParams.get('dataset') || 'ukn';
+            var score = 0;
+            var total = results.length;
+            var result = '';
+            var datasets = {{ datasets | tojson }};
+
+            wrk_correct = 0;
+            wrk_wrong = 0;
+            syn_correct = 0;
+            syn_wrong = 0;
+
+            for (let i = 0; i < total; i++) {
+                if (results[i] === 'c' || results[i] === 'C') {
+                    score += 1;
+                }
+
+                if (results[i] === 'c') {
+                    wrk_correct += 1;
+                } else if (results[i] === 'w') {
+                    wrk_wrong += 1;
+                } else if (results[i] === 'C') {
+                    syn_correct += 1;
+                } else if (results[i] === 'W') {
+                    syn_wrong += 1;
+                } else if (results[i] === results[i].toUpperCase()) {
+                    syn_wrong += 1;
+                } else {
+                    wrk_wrong += 1;
+                }
+            }
+
+            $('#user').text(name);
+            $('#name').text(name);
+            $('#score').text(score + '/' + total + (tries != total ? ' (out of ' + tries + ')' : ''));
+            $('#tries').text(tries);
+
+            if (datasets[dataset] !== undefined) {
+                var ds_pretty = datasets[dataset] + ' (' + dataset + ')';
+            } else {
+                var ds_pretty = dataset;
+            }
+            $('#dataset').text(ds_pretty);
+
+            $('#wrk-correct').text(wrk_correct);
+            $('#wrk-wrong').text(wrk_wrong);
+            $('#syn-correct').text(syn_correct);
+            $('#syn-wrong').text(syn_wrong);
+
+            res_uri = "guessgame://result?res=" + results + result + '&tries=' + tries + '&name=' + name + '&dataset=' + dataset;
+            QRCode.toCanvas(document.getElementById('canvas'), res_uri, { errorCorrectionLevel: 'H' }, function (error) {
+                if (error) console.error(error)
+                console.log('success!');
+            })
+        </script>
+</body>
+
+</html>

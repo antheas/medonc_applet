@@ -53,6 +53,11 @@ def game():
     )
 
 
+@app.route("/results")
+def results():
+    return render_template("results.html", datasets=ds_names)
+
+
 def main():
     import sys
 
