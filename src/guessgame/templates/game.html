@@ -23,7 +23,7 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="/">Real or Synth</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -32,12 +32,14 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <ul class="navbar-nav me-auto mb-2">
                     <li class="nav-item">
                         <a class="nav-link" href="/">New Game</a>
                     </li>
                 </ul>
             </div>
+            <span class="navbar-text">Name: <span id="name"></span></span>
+            </span>
         </div>
     </nav>
 
@@ -167,6 +169,7 @@
 
             $('#score').text(score + '/' + total + (tries ? ' (to ' + tries + ')' : ''));
             $("#time").text(countdown);
+            $("#name").text(name);
             // Update the time every second.
             let interval = setInterval(() => {
                 countdown -= 1;
