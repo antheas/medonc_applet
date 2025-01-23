@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 ds_path = None
 countdown = 15
-ds_names = {}
+ds_names = {"latest": "Latest"}
 datasets = {}
 
 

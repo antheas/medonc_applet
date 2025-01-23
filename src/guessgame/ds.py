@@ -60,7 +60,11 @@ def load_syn_data_ts(ds_path: str, ts):
 def load_data(ds_path: str, ts):
     return Datasets(
         load_original_data(ds_path),
-        load_syn_data_latest(ds_path) if ts is None else load_syn_data_ts(ds_path, ts),
+        (
+            load_syn_data_latest(ds_path)
+            if ts is None or ts == "latest"
+            else load_syn_data_ts(ds_path, ts)
+        ),
     )
 
 
