@@ -22,7 +22,7 @@ def get_relative_fn(fn: str):
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html", datasets=ds_names)
 
 
 @app.route("/game")

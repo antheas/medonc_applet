@@ -5,10 +5,6 @@
 {% set fake = 1 %}
 {% endif %}
 
-{% if dataset is not defined %}
-{% set dataset = unknown %}
-{% endif %}
-
 {# correct wrong timeout skip #}
 {# Uppercase: synth, lowercase: real #}
 
@@ -80,6 +76,9 @@
 
             var urlParams = new URLSearchParams(window.location.search);
             var results = urlParams.get('res') || '';
+            var tries = urlParams.get('tries') || 0;
+            var name = urlParams.get('name') || 'Unknown';
+            var dataset = urlParams.get('dataset') || 'ukn';
             var score = 0;
             var total = results.length;
             var result = '';
@@ -128,7 +127,7 @@
                     $('#fake').addClass('btn-danger');
                 }
 
-                $('#score').text(score + '/' + total);
+                $('#score').text(score + '/' + total + (tries ? ' (to ' + tries + ')' : ''));
                 $('#time-span').text('');
                 finished = true;
             }
@@ -148,10 +147,11 @@
                     total += 1;
                     result = is_fake ? 'S' : 's';
                 }
-                window.location.href = '/?res=' + results + result;
+                base = tries && total >= tries ? '/results' : '/game';
+                window.location.href = base + '?res=' + results + result + '&tries=' + tries + '&name=' + name + '&dataset=' + dataset;
             }
 
-            $('#score').text(score + '/' + total);
+            $('#score').text(score + '/' + total + (tries ? ' (to ' + tries + ')' : ''));
             $("#time").text(countdown);
             // Update the time every second.
             let interval = setInterval(() => {
