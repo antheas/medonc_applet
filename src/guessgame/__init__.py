@@ -6,6 +6,7 @@ from .ds import generate_patient, load_data
 app = Flask(__name__)
 
 ds_path = None
+countdown = 15
 ds_names = {}
 datasets = {}
 
@@ -49,7 +50,10 @@ def game():
                 pass
 
     return render_template(
-        "game.html", patient=patient, fake="true" if syn else "false"
+        "game.html",
+        patient=patient,
+        fake="true" if syn else "false",
+        countdown=countdown,
     )
 
 
@@ -67,7 +71,7 @@ def main():
         )
         sys.exit(1)
 
-    global ds_path, ds_names
+    global ds_path, ds_names, countdown
     ds_path = sys.argv[1]
     ds_names = {}
     for ds in sys.argv[2].split(","):
@@ -76,6 +80,10 @@ def main():
 
     if ds_path == "skip":
         print("Skipping dataset loading")
+
+    for arg in sys.argv:
+        if arg.startswith("countdown="):
+            countdown = int(arg.split("=", 1)[1])
 
     app.debug = True
     app.run(

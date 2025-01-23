@@ -4,6 +4,9 @@
 {% if fake is not defined %}
 {% set fake = 1 %}
 {% endif %}
+{% if countdown is not defined %}
+{% set countdown = 15 %}
+{% endif %}
 
 {# correct wrong timeout skip #}
 {# Uppercase: synth, lowercase: real #}
@@ -89,7 +92,7 @@
                 }
             }
 
-            let countdown = 10;
+            let countdown = {{ countdown }};
             const is_fake = {{ fake }};
             let finished = false;
             let exit = false;
