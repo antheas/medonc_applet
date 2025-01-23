@@ -1,11 +1,13 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import random
 
 from .ds import generate_patient, load_data
 
 app = Flask(__name__)
 
-dataset = None
+ds_path = None
+ds_names = {}
+datasets = {}
 
 
 def get_relative_fn(fn: str):
@@ -30,6 +32,14 @@ def game():
         f"No patient data (running in fake mode or generation failed)\nSynth: {syn}"
     )
 
+    dataset = None
+    dataset_name = request.args.get("dataset")
+    if dataset_name in datasets:
+        dataset = datasets[dataset_name]
+    elif ds_path and ds_path != "skip":
+        dataset = load_data(ds_path, dataset_name)
+        datasets[dataset_name] = dataset
+
     if dataset:
         for _ in range(10):
             try:
@@ -46,18 +56,21 @@ def game():
 def main():
     import sys
 
-    if len(sys.argv) < 2:
-        print("Missing pasteur dataset path. Enter guessgame <path>")
+    if len(sys.argv) < 3:
+        print(
+            "Missing pasteur dataset path or datasets. Enter guessgame <path> <datasets>"
+        )
         sys.exit(1)
 
+    global ds_path, ds_names
     ds_path = sys.argv[1]
+    ds_names = {}
+    for ds in sys.argv[2].split(","):
+        k, v = ds.split(":", 1)
+        ds_names[k] = v
 
     if ds_path == "skip":
         print("Skipping dataset loading")
-    else:
-        global dataset
-        print(f"Loading data from:\n{ds_path}")
-        dataset = load_data(ds_path)
 
     app.debug = True
     app.run(
