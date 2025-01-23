@@ -52,6 +52,7 @@
                 <button class="btn btn-primary btn-lg" id="real" onclick="real()">Real</button>
                 <button class="btn btn-warning btn-lg" id="fake" onclick="fake()">Synth</button>
                 <button class="btn btn-secondary btn-lg" id="next" onclick="next()">Next</button>
+                <button class="btn btn-secondary btn-lg" id="finish" onclick="finish()">Results</button>
             </div>
             <div class="col-auto">
                 <div class="my-1"></div>
@@ -97,6 +98,7 @@
             let countdown = 10;
             const is_fake = {{ fake }};
             let finished = false;
+            let exit = false;
 
             function set_success(failed) {
                 if (finished) return;
@@ -118,6 +120,8 @@
 
                 $('#next').removeClass('btn-secondary');
                 $('#next').addClass('btn-primary');
+                $('#finish').removeClass('btn-secondary');
+                $('#finish').addClass('btn-primary');
 
                 if (is_fake) {
                     $('#fake').addClass('btn-success');
@@ -147,8 +151,18 @@
                     total += 1;
                     result = is_fake ? 'S' : 's';
                 }
-                base = tries && total >= tries ? '/results' : '/game';
+                base = (tries && total >= tries || exit) ? '/results' : '/game';
                 window.location.href = base + '?res=' + results + result + '&tries=' + tries + '&name=' + name + '&dataset=' + dataset;
+            }
+
+            function finish() {
+                finished = true;
+                exit = true;
+                // Ignore a timeout as a last result
+                if ('tT'.includes(result)) {
+                    result = '';
+                }
+                next();
             }
 
             $('#score').text(score + '/' + total + (tries ? ' (to ' + tries + ')' : ''));
