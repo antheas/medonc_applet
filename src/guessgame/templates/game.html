@@ -83,10 +83,13 @@
             var name = urlParams.get('name') || 'Unknown';
             var dataset = urlParams.get('dataset') || 'ukn';
             var score = 0;
-            var total = results.length;
+            var total = results.length / 2;
             var result = '';
 
-            for (let i = 0; i < total; i++) {
+            var time = 0;
+            const TIME_ENC = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/";
+
+            for (let i = 0; i < results.length; i += 2) {
                 if (results[i] === 'c' || results[i] === 'C') {
                     score += 1;
                 }
@@ -148,6 +151,11 @@
                     total += 1;
                     result = is_fake ? 'S' : 's';
                 }
+
+                if (result) {
+                    result = result + TIME_ENC[Math.min(63, time)];
+                }
+
                 base = (tries && total >= tries || exit) ? '/results' : '/game';
                 window.location.href = base + '?res=' + results + result + '&tries=' + tries + '&name=' + name + '&dataset=' + dataset;
             }
@@ -168,6 +176,8 @@
             // Update the time every second.
             let interval = setInterval(() => {
                 countdown -= 1;
+                time += 1;
+
                 $("#time").text(countdown);
                 if (countdown <= 3) {
                     $('#time-span').addClass('text-danger');

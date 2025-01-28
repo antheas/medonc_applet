@@ -93,7 +93,7 @@
             var name = urlParams.get('name') || 'Unknown';
             var dataset = urlParams.get('dataset') || 'ukn';
             var score = 0;
-            var total = results.length;
+            var total = results.length / 2;
             var result = '';
             var datasets = {{ datasets | tojson }};
 
@@ -102,7 +102,7 @@
             syn_correct = 0;
             syn_wrong = 0;
 
-            for (let i = 0; i < total; i++) {
+            for (let i = 0; i < results.length; i += 2) {
                 if (results[i] === 'c' || results[i] === 'C') {
                     score += 1;
                 }
