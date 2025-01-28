@@ -78,7 +78,7 @@ def generate_patient(ds: Datasets, syn):
         bsa = None
         height = None
 
-        out += f'Patient born in {p.birth.year} presents with:\n- {p.primary_icd}: {p.primary_description}, Height: {p.height:.1f}{" F" if syn else ""}\n'
+        out += f'Patient born in {p.birth.year} presents with:\n- {p.primary_icd}: {p.primary_description}, Height: {p.height:.1f}\n'
         if not math.isnan(p.height):
             height = p.height
 
