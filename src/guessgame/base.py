@@ -88,9 +88,12 @@ def main():
     if "--browser" in sys.argv:
         import webbrowser
 
+        # We are deploying, reloads will reopen the browser
+        app.debug = False
         webbrowser.open("http://localhost:6565/")
-
-    app.debug = True
+    else:
+        app.debug = True
+    
     app.run(
         host="127.0.0.1",
         port=6565,
