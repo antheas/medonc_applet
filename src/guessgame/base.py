@@ -67,7 +67,7 @@ def main():
 
     if len(sys.argv) < 3:
         print(
-            "Missing pasteur dataset path or datasets. Enter guessgame <path> <datasets>"
+            "Missing pasteur dataset path or datasets. Enter guessgame <path> <datasets> [args]"
         )
         sys.exit(1)
 
@@ -84,6 +84,11 @@ def main():
     for arg in sys.argv:
         if arg.startswith("countdown="):
             countdown = int(arg.split("=", 1)[1])
+
+    if "--browser" in sys.argv:
+        import webbrowser
+
+        webbrowser.open("http://localhost:6565/")
 
     app.debug = True
     app.run(
