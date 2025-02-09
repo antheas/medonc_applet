@@ -1,0 +1,10 @@
+{
+    "pretty": "Medonc (Fake)",
+    "type": "fake",
+    "datasets": {
+        "orig": "Original Data",
+        "e1": "Synth e=1",
+        "e10": "Synth e=10",
+        "e100": "Synth e=100"
+    }
+}
