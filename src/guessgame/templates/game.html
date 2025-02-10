@@ -61,13 +61,14 @@
             <div class="col-auto">
                 <div class="my-1"></div>
                 <h2>
-                    <span id="score-span">Score:
-                        {% if peek == "true" %}
-                        <span id="score">{{score}} out of {{total}}/{{tries}}</span>
-                        {% else %}
+                    {% if peek == "true" %}
+                    <span id="score">✅ {{score}}, Progress: {{total}}/{{tries}}</span>
+
+                    {% else %}
+                    <span id="score-span">Progress:
                         <span id="score">{{total}}/{{tries}}</span>
-                        {% endif %}
                     </span>
+                    {% endif %}
                     <span id="time-span">Time: <span id="time">0</span>s</span>
                 </h2>
             </div>
@@ -116,7 +117,10 @@
                 if (finished) return;
                 finished = true;
 
-                if (!peek) goto_next();
+                if (!peek) {
+                    goto_next();
+                    return;
+                }
 
                 if (!failed) {
                     score += 1;
@@ -146,7 +150,7 @@
                     $('#fake').addClass('btn-danger');
                 }
 
-                $('#score').text(score + " out of " + total + "/" + tries);
+                $('#score').text(`✅ ${score}, Progress: ${total}/${tries}`);
                 $('#time-span').text('');
             }
 

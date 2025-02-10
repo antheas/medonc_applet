@@ -2,6 +2,45 @@
     "pretty": "Experiment (100 patients)",
     "peek": false,
     "subjects": [
-        
+        [
+            "orig",
+            "orig 1"
+        ],
+        [
+            "orig",
+            "orig 2"
+        ],
+        [
+            "orig",
+            "orig 3"
+        ],
+        [
+            "orig",
+            "orig 4"
+        ],
+        [
+            "e1",
+            "e1 1"
+        ],
+        [
+            "e1",
+            "e1 2"
+        ],
+        [
+            "e1",
+            "e1 3"
+        ],
+        [
+            "e1",
+            "e1 4"
+        ],
+        [
+            "e10",
+            "e10 1"
+        ],
+        [
+            "e10",
+            "e10 2"
+        ]
     ]
 }
