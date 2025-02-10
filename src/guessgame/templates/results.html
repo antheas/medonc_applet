@@ -53,16 +53,16 @@
                             <thead>
                                 <tr>
                                     <th scope="col"></th>
-                                    <th scope="col">Correct</th>
                                     <th scope="col">Wrong</th>
+                                    <th scope="col">Correct</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for dataset in results %}
                                 <tr>
                                     <th scope="row">{{ results[dataset]['name'] }}</th>
-                                    <td>{{ results[dataset]['correct'] }}</td>
                                     <td>{{ results[dataset]['incorrect'] }}</td>
+                                    <td>{{ results[dataset]['correct'] }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
