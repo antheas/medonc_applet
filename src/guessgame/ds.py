@@ -217,9 +217,13 @@ def save_sessions(exp: Experiment, sessions: dict[str, Session], updated: set[st
     if not os.path.exists(exp["session_path"]):
         os.makedirs(exp["session_path"])
 
-    for k in updated:
-        with open(os.path.join(exp["session_path"], f"{k}.json"), "w") as f:
-            json.dump(sessions[k], f, indent=2)
+    for k in list(updated):
+        try:
+            with open(os.path.join(exp["session_path"], f"{k}.json"), "w") as f:
+                json.dump(sessions[k], f, indent=2)
+            updated.remove(k)
+        except Exception as e:
+            logger.error(f"Error saving session '{k}': {e}")
 
 
 def delete_session(exp: Experiment, session_id: str):

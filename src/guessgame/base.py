@@ -109,6 +109,8 @@ def game():
                     "time": time,
                 }
             )
+            updated.add(session_id)
+            save_sessions(experiment, sessions, updated)
         else:
             logger.warning(f"Resubmission detected ({idx}) for session {session_id}")
 
