@@ -47,7 +47,8 @@ def index():
         history={
             k: f'{v["name"]} at {experiment["rounds"][v["round"]]["pretty"].split(" (", 1)[0]}, score: {len([v for v in v["results"] if v["result"] == "correct"])}/{len(v["results"])}'
             for k, v in sessions.items()
-            if (len(v["results"]) == len(v["subjects"]) or v["finished"]) and len(v["results"]) > 0
+            if (len(v["results"]) == len(v["subjects"]) or v["finished"])
+            and len(v["results"]) > 0
         },
     )
 
@@ -162,7 +163,36 @@ def results():
     updated.add(session_id)
     save_sessions(experiment, sessions, updated)
 
-    return render_template("results.html")
+    results = {
+        k: {
+            "name": v,
+            "correct": 0,
+            "incorrect": 0,
+        }
+        for k, v in experiment["dataset_names"].items()
+    }
+
+    score = 0
+    total = len(session["results"])
+    
+    for i, result in enumerate(session["results"]):
+        dataset, _ = session["subjects"][i]
+        if result["result"] == "correct":
+            results[dataset]["correct"] += 1
+            score += 1
+        else:
+            results[dataset]["incorrect"] += 1
+
+    return render_template(
+        "results.html",
+        name=session["name"],
+        results=results,
+        score=score,
+        total=total,
+        tries=len(session["subjects"]),
+        time=int(sum(s["time"] for s in session["results"])),
+        round=experiment["rounds"][session["round"]]["pretty"],
+    )
 
 
 def main():
