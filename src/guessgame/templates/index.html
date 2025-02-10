@@ -4,6 +4,9 @@
 {% if rounds is not defined %}
 {% set rounds = ({ }) %}
 {% endif %}
+{% if sessions is not defined %}
+{% set sessions = ({ }) %}
+{% endif %}
 
 <head>
     <meta charset="utf-8" />
@@ -29,7 +32,7 @@
     <div class="container align-items-center">
         <form class="row needs-validation justify-content-center my-5" action="/begin" method="get">
             <div class="col-auto">
-                <div class="card" style="width: 18rem;">
+                <div class="card" style="width: 26rem;">
                     <div class="card-body">
                         <h5 class="card-title">Experiment Setup</h5>
 
@@ -38,8 +41,8 @@
 
                         {% for round in rounds %}
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="round" id="{{round}}"
-                                value="{{round}}" {% if loop.first %} checked {% endif %}>
+                            <input class="form-check-input" type="radio" name="round" id="{{round}}" value="{{round}}"
+                                {% if loop.first %} checked {% endif %}>
                             <label class="form-check-label" for="{{round}}">
                                 {{ rounds[round] }}
                             </label>
@@ -56,7 +59,21 @@
                                 aria-describedby="inputGroup-sizing-default" required>
                         </div>
                         <div class="dropdown-divider"></div>
-                        <input class="btn btn-primary float-right" type="submit" value="Begin">
+                        <input class="btn btn-primary" type="submit" value="Begin">
+                        
+                        {% if sessions %}
+                            <div class="dropdown-divider mt-3"></div>
+                            <h6 class="card-subtitle mb-2 mt-3 text-muted">Resume Session</h6>
+
+                            {% for session in sessions %}
+                            <div class="btn-group">
+                                <a href="/game?session={{session}}" class="btn btn-light active my-1" role="button"
+                                    aria-pressed="true">{{ sessions[session] }}</a>
+                                <a href="/delete?session={{session}}" class="btn btn-danger active my-1" role="button"
+                                    aria-pressed="true">Delete</a>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
                     </div>
                 </div>
             </div>

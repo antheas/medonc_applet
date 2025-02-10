@@ -2,28 +2,26 @@ from flask import Flask, render_template, request, redirect
 import random
 import logging
 from datetime import datetime
-from typing import cast, TypedDict, Literal
-from .ds import generate_patient, load_data, Experiment
+from typing import cast
+from .ds import (
+    generate_patient,
+    load_sessions,
+    save_sessions,
+    delete_session,
+    load_data,
+    Experiment,
+    Session,
+    VERSION,
+)
 
 app = Flask(__name__)
-
-
-class Result(TypedDict):
-    time: float
-    result: Literal["correct", "incorrect", "timeout"]
-
-
-class Session(TypedDict):
-    name: str
-    round: str
-    subjects: list[tuple[str, str]]
-    results: list[Result]
 
 
 logger = logging.getLogger(__name__)
 
 experiment: Experiment = cast(Experiment, None)
 sessions: dict[str, Session] = {}
+updated: set[str] = set()
 
 
 def get_relative_fn(fn: str):
@@ -39,7 +37,13 @@ def get_relative_fn(fn: str):
 @app.route("/")
 def index():
     return render_template(
-        "index.html", rounds={k: v["pretty"] for k, v in experiment["rounds"].items()}
+        "index.html",
+        rounds={k: v["pretty"] for k, v in experiment["rounds"].items()},
+        sessions={
+            k: f'{v["name"]}, {experiment["rounds"][v["round"]]["pretty"].split(" (", 1)[0]} ({len(v["results"])}/{len(v["subjects"])})'
+            for k, v in sessions.items()
+            if len(v["results"]) < len(v["subjects"])
+        },
     )
 
 
@@ -58,12 +62,30 @@ def start():
     session_id = f"{name}_{round}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
     sessions[session_id] = {
+        "version": VERSION,
         "name": name,
         "round": round,
         "subjects": subjects,
         "results": [],
     }
     return redirect(f"/game?session={session_id}")
+
+
+@app.route("/delete")
+def delete():
+    session = request.args.get("session")
+    assert session is not None
+
+    if session in sessions:
+        del sessions[session]
+    if session in updated:
+        updated.remove(session)
+
+    # Sanitive name!!!
+    session = session.replace("/", "").replace("\\", "")
+    delete_session(experiment, session)
+
+    return redirect("/")
 
 
 # @app.route("/game")
@@ -113,9 +135,10 @@ def main():
 
     ds_path = sys.argv[1]
 
-    global experiment
+    global experiment, sessions
     try:
         experiment = load_data(ds_path)
+        sessions = load_sessions(experiment)
     except AssertionError as e:
         logger.error(e)
         return

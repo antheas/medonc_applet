@@ -2,11 +2,12 @@ import re
 import math
 import os
 import json
-from typing import NamedTuple, Any, TypedDict, Callable
+from typing import NamedTuple, Any, TypedDict, Callable, Literal, cast
 import pandas as pd
 
 import logging
 
+VERSION = 1
 FPAT = re.compile(r"{(?P<fun>\w+)\((?P<args>[a-zA-Z0-9\. ,]+)\)}")
 ALG = "mare"
 
@@ -19,10 +20,24 @@ class Round(TypedDict):
     subjects: list[tuple[str, str]]
 
 
+class Result(TypedDict):
+    time: float
+    result: Literal["correct", "incorrect", "timeout"]
+
+
+class Session(TypedDict):
+    version: int
+    name: str
+    round: str
+    subjects: list[tuple[str, str]]
+    results: list[Result]
+
+
 class Experiment(TypedDict):
     pretty: str
     type: str
     dataset_names: dict[str, str]
+    session_path: str
 
     datasets: dict[str, Any]
     rounds: dict[str, Round]
@@ -171,4 +186,45 @@ def load_data(ds_path: str):
         datasets=datasets,
         rounds=rounds,
         generate=dataset_functions[dataset_type]["generate"],
+        session_path=os.path.join(experiment_path, "results"),
     )
+
+
+def load_sessions(exp: Experiment):
+    if not os.path.exists(exp["session_path"]):
+        return {}
+
+    sessions = {}
+    for fn in os.listdir(exp["session_path"]):
+        if not fn.endswith(".json"):
+            continue
+
+        with open(os.path.join(exp["session_path"], fn), "r") as f:
+            session = cast(Session, json.load(f))
+            if session["version"] != VERSION:
+                logger.warning(
+                    f"Session '{fn}' has version {session['version']} instead of {VERSION}"
+                )
+                continue
+            sessions[fn.replace(".json", "")] = session
+
+    return sessions
+
+
+def save_sessions(exp: Experiment, sessions: dict[str, Session], updated: set[str]):
+    if not os.path.exists(exp["session_path"]):
+        os.makedirs(exp["session_path"])
+
+    for k in updated:
+        with open(os.path.join(exp["session_path"], f"{k}.json"), "w") as f:
+            json.dump(sessions[k], f, indent=2)
+
+def delete_session(exp: Experiment, session_id: str):
+    if not os.path.exists(exp["session_path"]):
+        return
+
+    session_fn = os.path.join(exp["session_path"], f"{session_id}.json")
+    if os.path.exists(session_fn):
+        os.remove(session_fn)
+    else:
+        logger.warning(f"Session '{session_id}' not found")
