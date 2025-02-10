@@ -128,7 +128,7 @@ def load_medonc_data(ds_path: str):
 
 dataset_functions: dict[str, DatasetFunctions] = {
     "medonc": {"load": load_medonc_data, "generate": generate_patient},
-    "fake": {"load": lambda x: x, "generate": lambda x, y, z: f"{x} {y} {z}"},
+    "fake": {"load": lambda x: x, "generate": lambda x, y, z: f"{y} {z}"},
 }
 
 

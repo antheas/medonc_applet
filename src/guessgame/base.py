@@ -105,7 +105,7 @@ def game():
 
         if not result:
             logger.warning(f"Empty result for session {session_id}")
-        elif idx <= len(session["results"]):
+        elif idx == len(session["results"]):
             session["results"].append(
                 {
                     "result": result,  # type: ignore
@@ -141,7 +141,7 @@ def game():
         total=len(session["results"]),
         tries=len(session["subjects"]),
         synth="true" if dataset not in experiment["real"] else "false",
-        total_time=sum(s["time"] for s in session["results"]),
+        total_time=int(sum(s["time"] for s in session["results"])),
         name=session["name"],
     )
 

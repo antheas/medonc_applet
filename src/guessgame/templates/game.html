@@ -68,8 +68,7 @@
                         <span id="score">{{total}}/{{tries}}</span>
                         {% endif %}
                     </span>
-                    <span id="time-span">Time: <span id="time">0</span>/<span
-                            id="total_time">{{total_time}}</span>s</span>
+                    <span id="time-span">Time: <span id="time">0</span>s</span>
                 </h2>
             </div>
         </div>
@@ -140,11 +139,11 @@
                 $('#finish').addClass('btn-primary');
 
                 if (synth) {
-                    $('#real').addClass('btn-success');
-                    $('#fake').addClass('btn-danger');
-                } else {
                     $('#fake').addClass('btn-success');
                     $('#real').addClass('btn-danger');
+                } else {
+                    $('#real').addClass('btn-success');
+                    $('#fake').addClass('btn-danger');
                 }
 
                 $('#score').text(score + " out of " + total + "/" + tries);
@@ -155,17 +154,16 @@
             let interval = setInterval(() => {
                 time += 1;
                 $('#time').text(time);
-                $('#total_time').text(total_time + time);
             }, 1000);
 
             function real() {
                 result = synth ? "incorrect" : "correct";
-                set_success(!synth);
+                set_success(synth);
             }
 
             function fake() {
                 result = synth ? "correct" : "incorrect";
-                set_success(synth);
+                set_success(!synth);
             }
 
             function next() {
