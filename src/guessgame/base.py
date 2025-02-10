@@ -198,7 +198,7 @@ def results():
 def main():
     import sys
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     if len(sys.argv) < 2:
         print("Missing dataset path. Enter guessgame <path> [args]")
