@@ -88,35 +88,44 @@ def delete():
     return redirect("/")
 
 
-# @app.route("/game")
-# def game():
-#     syn = random.randint(0, 1) == 1
-#     patient = (
-#         f"No patient data (running in fake mode or generation failed)\nSynth: {syn}"
-#     )
+@app.route("/game")
+def game():
+    session_id = request.args.get("session")
+    if session_id not in sessions:
+        return redirect("/")
 
-#     dataset = None
-#     dataset_name = request.args.get("dataset")
-#     if dataset_name in datasets:
-#         dataset = datasets[dataset_name]
-#     elif ds_path and ds_path != "skip":
-#         dataset = load_data(ds_path, dataset_name)
-#         datasets[dataset_name] = dataset
+    session = sessions[session_id]
 
-#     if dataset:
-#         for _ in range(10):
-#             try:
-#                 patient = generate_patient(dataset, syn)
-#                 break
-#             except Exception:
-#                 pass
+    if request.method == "POST":
+        data = request.form
+        idx = int(data["idx"])
+        result = data["result"]
+        time = float(data["time"])
 
-#     return render_template(
-#         "game.html",
-#         patient=patient,
-#         fake="true" if syn else "false",
-#         countdown=countdown,
-#     )
+        if idx <= len(session["results"]):
+            session["results"].append(
+                {
+                    "result": result,  # type: ignore
+                    "time": time,
+                }
+            )
+        else:
+            logger.warning(f"Resubmission detected ({idx}) for session {session_id}")
+
+    idx = len(session["results"])
+    dataset, subject = session["subjects"][idx]
+
+    patient = experiment['generate'](experiment["datasets"], dataset, subject)
+
+    return render_template(
+        "game.html",
+        patient=patient,
+        idx=idx,
+        peak=experiment["rounds"][session["round"]]["peek"],
+        session_id=session_id,
+        synth=dataset not in experiment["real"],
+        name=session["name"],
+    )
 
 
 # @app.route("/results")

@@ -22,7 +22,7 @@ class Round(TypedDict):
 
 class Result(TypedDict):
     time: float
-    result: Literal["correct", "incorrect", "timeout"]
+    result: Literal["correct", "incorrect", "timeout", "skip"]
 
 
 class Session(TypedDict):
@@ -38,6 +38,7 @@ class Experiment(TypedDict):
     type: str
     dataset_names: dict[str, str]
     session_path: str
+    real: list[str]
 
     datasets: dict[str, Any]
     rounds: dict[str, Round]
@@ -182,6 +183,7 @@ def load_data(ds_path: str):
     return Experiment(
         pretty=pretty,
         type=dataset_type,
+        real=info["real"],
         dataset_names=dataset_names,
         datasets=datasets,
         rounds=rounds,
@@ -218,6 +220,7 @@ def save_sessions(exp: Experiment, sessions: dict[str, Session], updated: set[st
     for k in updated:
         with open(os.path.join(exp["session_path"], f"{k}.json"), "w") as f:
             json.dump(sessions[k], f, indent=2)
+
 
 def delete_session(exp: Experiment, session_id: str):
     if not os.path.exists(exp["session_path"]):

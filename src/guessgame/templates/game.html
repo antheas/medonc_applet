@@ -1,15 +1,9 @@
 <!DOCTYPE html>
 <html lang='en'>
 
-{% if fake is not defined %}
-{% set fake = 1 %}
+{% if synth is not defined %}
+{% set synth = 1 %}
 {% endif %}
-{% if countdown is not defined %}
-{% set countdown = 15 %}
-{% endif %}
-
-{# correct wrong timeout skip #}
-{# Uppercase: synth, lowercase: real #}
 
 <head>
     <meta charset="utf-8" />
@@ -41,7 +35,7 @@
                     </li>
                 </ul>
             </div>
-            <span class="navbar-text">Name: <span id="name"></span></span>
+            <span class="navbar-text">Name: <span id="name">{{name}}</span></span>
             </span>
         </div>
     </nav>
