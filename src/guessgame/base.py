@@ -1,15 +1,29 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 import random
 import logging
-from typing import cast
+from datetime import datetime
+from typing import cast, TypedDict, Literal
 from .ds import generate_patient, load_data, Experiment
 
 app = Flask(__name__)
 
+
+class Result(TypedDict):
+    time: float
+    result: Literal["correct", "incorrect", "timeout"]
+
+
+class Session(TypedDict):
+    name: str
+    round: str
+    subjects: list[tuple[str, str]]
+    results: list[Result]
+
+
 logger = logging.getLogger(__name__)
 
 experiment: Experiment = cast(Experiment, None)
-sessions = []
+sessions: dict[str, Session] = {}
 
 
 def get_relative_fn(fn: str):
@@ -27,6 +41,29 @@ def index():
     return render_template(
         "index.html", rounds={k: v["pretty"] for k, v in experiment["rounds"].items()}
     )
+
+
+@app.route("/begin")
+def start():
+    name = request.args.get("name")
+    round = request.args.get("round")
+    assert round is not None and name is not None
+
+    # only keep a-z A-Z 0-9 and _ from name
+    name = "".join([c for c in name if c.isalnum() or c == "_"])
+
+    subjects = experiment["rounds"][round]["subjects"]
+    random.shuffle(subjects)
+
+    session_id = f"{name}_{round}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+    sessions[session_id] = {
+        "name": name,
+        "round": round,
+        "subjects": subjects,
+        "results": [],
+    }
+    return redirect(f"/game?session={session_id}")
 
 
 # @app.route("/game")

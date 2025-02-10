@@ -27,7 +27,7 @@
     </nav>
 
     <div class="container align-items-center">
-        <form class="row needs-validation justify-content-center my-5" action="/game" method="get">
+        <form class="row needs-validation justify-content-center my-5" action="/begin" method="get">
             <div class="col-auto">
                 <div class="card" style="width: 18rem;">
                     <div class="card-body">
@@ -38,7 +38,7 @@
 
                         {% for round in rounds %}
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="dataset" id="{{round}}"
+                            <input class="form-check-input" type="radio" name="round" id="{{round}}"
                                 value="{{round}}" {% if loop.first %} checked {% endif %}>
                             <label class="form-check-label" for="{{round}}">
                                 {{ rounds[round] }}

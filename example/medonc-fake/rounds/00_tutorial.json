@@ -1,7 +1,7 @@
 {
     "pretty": "Tutorial Round (10 patients)",
     "peek": true,
-    "data": [
+    "subjects": [
         [
             "orig",
             "orig 1"
