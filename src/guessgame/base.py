@@ -44,6 +44,11 @@ def index():
             for k, v in sessions.items()
             if len(v["results"]) < len(v["subjects"]) and not v["finished"]
         },
+        history={
+            k: f'{v["name"]} at {experiment["rounds"][v["round"]]["pretty"].split(" (", 1)[0]}, score: {len([v for v in v["results"] if v["result"] == "correct"])}/{len(v["results"])}'
+            for k, v in sessions.items()
+            if (len(v["results"]) == len(v["subjects"]) or v["finished"]) and len(v["results"]) > 0
+        },
     )
 
 

@@ -60,19 +60,33 @@
                         </div>
                         <div class="dropdown-divider"></div>
                         <input class="btn btn-primary" type="submit" value="Begin">
-                        
-                        {% if sessions %}
-                            <div class="dropdown-divider mt-3"></div>
-                            <h6 class="card-subtitle mb-2 mt-3 text-muted">Resume Session</h6>
 
-                            {% for session in sessions %}
-                            <div class="btn-group">
-                                <a href="/game?session={{session}}" class="btn btn-light active my-1" role="button"
-                                    aria-pressed="true">{{ sessions[session] }}</a>
-                                <a href="/delete?session={{session}}" class="btn btn-danger active my-1" role="button"
-                                    aria-pressed="true">Delete</a>
-                            </div>
-                            {% endfor %}
+                        {% if sessions %}
+                        <div class="dropdown-divider mt-3"></div>
+                        <h6 class="card-subtitle mb-2 mt-3 text-muted">Resume Session</h6>
+
+                        {% for session in sessions %}
+                        <div class="btn-group">
+                            <a href="/game?session={{session}}" class="btn btn-info active my-1" role="button"
+                                aria-pressed="true">{{ sessions[session] }}</a>
+                            <a href="/delete?session={{session}}" class="btn btn-danger active my-1" role="button"
+                                aria-pressed="true">Delete</a>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+
+                        {% if history %}
+                        <div class="dropdown-divider mt-3"></div>
+                        <h6 class="card-subtitle mb-2 mt-3 text-muted">Finished Experiments</h6>
+
+                        {% for session in history %}
+                        <div class="btn-group">
+                            <a href="/results?session={{session}}" class="btn btn-light active my-1" role="button"
+                                aria-pressed="true">{{ history[session] }}</a>
+                            {# <a href="/delete?session={{session}}" class="btn btn-danger active my-1" role="button"
+                                aria-pressed="true">Delete</a> #}
+                        </div>
+                        {% endfor %}
                         {% endif %}
                     </div>
                 </div>
