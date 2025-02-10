@@ -1,18 +1,9 @@
 <!DOCTYPE html>
 <html lang='en'>
 
-{% if fake is not defined %}
-{% set fake = 1 %}
+{% if rounds is not defined %}
+{% set rounds = ({ }) %}
 {% endif %}
-{% if datasets is not defined %}
-{% set datasets = ({ "med-e1": "MedOnc e=1", "med-e10": "MedOnc e=10", "med-e100": "MedOnc e=100" }) %}
-{% endif %}
-{% if tries is not defined %}
-{% set tries = [5,30,100] %}
-{% endif %}
-
-{# correct wrong timeout skip #}
-{# Uppercase: synth, lowercase: real #}
 
 <head>
     <meta charset="utf-8" />
@@ -43,26 +34,15 @@
                         <h5 class="card-title">Experiment Setup</h5>
 
                         <div class="dropdown-divider"></div>
-                        <h6 class="card-subtitle mb-2 mt-3 text-muted">Dataset Selection</h6>
+                        <h6 class="card-subtitle mb-2 mt-3 text-muted">Select round</h6>
 
-                        {% for dataset in datasets %}
+                        {% for round in rounds %}
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="dataset" id="{{dataset}}"
-                                value="{{dataset}}" {% if loop.last %} checked {% endif %}>
-                            <label class="form-check-label" for="{{dataset}}">
-                                {{ datasets[dataset] }}
+                            <input class="form-check-input" type="radio" name="dataset" id="{{round}}"
+                                value="{{round}}" {% if loop.first %} checked {% endif %}>
+                            <label class="form-check-label" for="{{round}}">
+                                {{ rounds[round] }}
                             </label>
-                        </div>
-                        {% endfor %}
-
-                        <div class="dropdown-divider"></div>
-                        <h6 class="card-subtitle mb-2 mt-3 text-muted">Tries</h6>
-
-                        {% for try in tries %}
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="tries" id="try-{{try}}" value="{{try}}"
-                                {% if loop.last %} checked {% endif %}>
-                            <label class="form-check-label" for="{{try}}">{{try}}</label>
                         </div>
                         {% endfor %}
 

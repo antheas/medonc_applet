@@ -1,13 +1,15 @@
 from flask import Flask, render_template, request
 import random
 import logging
+from typing import cast
 from .ds import generate_patient, load_data, Experiment
 
 app = Flask(__name__)
 
 logger = logging.getLogger(__name__)
 
-experiment = {}
+experiment: Experiment = cast(Experiment, None)
+sessions = []
 
 
 def get_relative_fn(fn: str):
@@ -20,9 +22,11 @@ def get_relative_fn(fn: str):
     return os.path.join(dirname, fn)
 
 
-# @app.route("/")
-# def index():
-#     return render_template("index.html", datasets=datasets)
+@app.route("/")
+def index():
+    return render_template(
+        "index.html", rounds={k: v["pretty"] for k, v in experiment["rounds"].items()}
+    )
 
 
 # @app.route("/game")

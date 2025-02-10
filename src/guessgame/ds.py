@@ -159,8 +159,8 @@ def load_data(ds_path: str):
     assert os.path.exists(round_dir), f"Round directory '{round_dir}' does not exist"
 
     rounds = {}
-    for k in os.listdir(round_dir):
-        rounds[k] = json.load(open(os.path.join(round_dir, k)))
+    for k in sorted(list(os.listdir(round_dir))):
+        rounds[k.replace(".json", "")] = json.load(open(os.path.join(round_dir, k)))
 
     ds_name_concat = ", ".join([f"'{k}' ({v})" for k, v in dataset_names.items()])
     logger.info(f"Loaded experiment '{pretty}' with datasets '{ds_name_concat}'")
