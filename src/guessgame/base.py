@@ -42,7 +42,7 @@ def index():
         sessions={
             k: f'{v["name"]}, {experiment["rounds"][v["round"]]["pretty"].split(" (", 1)[0]} ({len(v["results"])}/{len(v["subjects"])})'
             for k, v in sessions.items()
-            if len(v["results"]) < len(v["subjects"])
+            if len(v["results"]) < len(v["subjects"]) and not v["finished"]
         },
     )
 
@@ -67,7 +67,11 @@ def start():
         "round": round,
         "subjects": subjects,
         "results": [],
+        "finished": False,
     }
+    updated.add(session_id)
+    save_sessions(experiment, sessions, updated)
+
     return redirect(f"/game?session={session_id}")
 
 
@@ -88,21 +92,20 @@ def delete():
     return redirect("/")
 
 
-@app.route("/game")
+@app.route("/game", methods=["GET", "POST"])
 def game():
-    session_id = request.args.get("session")
-    if session_id not in sessions:
-        return redirect("/")
-
-    session = sessions[session_id]
-
     if request.method == "POST":
+        # handle Post stuff separately
         data = request.form
         idx = int(data["idx"])
         result = data["result"]
         time = float(data["time"])
+        session_id = data["session"]
+        session = sessions[session_id]
 
-        if idx <= len(session["results"]):
+        if not result:
+            logger.warning(f"Empty result for session {session_id}")
+        elif idx <= len(session["results"]):
             session["results"].append(
                 {
                     "result": result,  # type: ignore
@@ -113,26 +116,48 @@ def game():
             save_sessions(experiment, sessions, updated)
         else:
             logger.warning(f"Resubmission detected ({idx}) for session {session_id}")
+    else:
+        session_id = request.args.get("session")
+        if session_id not in sessions:
+            return redirect("/")
+
+        session = sessions[session_id]
+
+    if len(session["results"]) >= len(session["subjects"]) or session["finished"]:
+        return redirect(f"/results?session={session_id}")
 
     idx = len(session["results"])
-    dataset, subject = session["subjects"][idx]
+    dataset, subject_id = session["subjects"][idx]
 
-    patient = experiment['generate'](experiment["datasets"], dataset, subject)
+    subject = experiment["generate"](experiment["datasets"], dataset, subject_id)
 
     return render_template(
         "game.html",
-        patient=patient,
+        subject=subject,
+        session=session_id,
         idx=idx,
-        peak=experiment["rounds"][session["round"]]["peek"],
-        session_id=session_id,
-        synth=dataset not in experiment["real"],
+        peek="true" if experiment["rounds"][session["round"]]["peek"] else "false",
+        score=sum(s["result"] == "correct" for s in session["results"]),
+        total=len(session["results"]),
+        tries=len(session["subjects"]),
+        synth="true" if dataset not in experiment["real"] else "false",
+        total_time=sum(s["time"] for s in session["results"]),
         name=session["name"],
     )
 
 
-# @app.route("/results")
-# def results():
-#     return render_template("results.html", datasets=datasets)
+@app.route("/results")
+def results():
+    session_id = request.args.get("session")
+    if session_id not in sessions:
+        return redirect("/")
+
+    session = sessions[session_id]
+    session["finished"] = True
+    updated.add(session_id)
+    save_sessions(experiment, sessions, updated)
+
+    return render_template("results.html")
 
 
 def main():

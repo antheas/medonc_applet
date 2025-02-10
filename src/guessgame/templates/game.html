@@ -4,6 +4,9 @@
 {% if synth is not defined %}
 {% set synth = 1 %}
 {% endif %}
+{% if peek is not defined %}
+{% set peek = true %}
+{% endif %}
 
 <head>
     <meta charset="utf-8" />
@@ -13,7 +16,7 @@
     filename='stylesheet.css')}}" />
 
     <style>
-        #patient {
+        #subject {
             font-size: 1.2rem;
         }
     </style>
@@ -40,7 +43,7 @@
         </div>
     </nav>
 
-    <!-- Form allows user to choose between whether the patient is real or fake. -->
+    <!-- Form allows user to choose between whether the subject is real or fake. -->
     <div class="container">
         <div class="row">
             <div class="col-md-12 my-3">
@@ -50,19 +53,30 @@
             <div class="col-auto">
                 <button class="btn btn-primary btn-lg" id="real" onclick="real()">Real</button>
                 <button class="btn btn-warning btn-lg" id="fake" onclick="fake()">Synth</button>
+                {% if peek == "true" %}
                 <button class="btn btn-secondary btn-lg" id="next" onclick="next()">Next</button>
+                {% endif %}
                 <button class="btn btn-secondary btn-lg" id="finish" onclick="finish()">Results</button>
             </div>
             <div class="col-auto">
                 <div class="my-1"></div>
-                <h2><span id="score-span">Score: <span id="score"></span></span> <span id="time-span">Time: <span
-                            id="time"></span>s</span></h3>
+                <h2>
+                    <span id="score-span">Score:
+                        {% if peek == "true" %}
+                        <span id="score">{{score}} out of {{total}}/{{tries}}</span>
+                        {% else %}
+                        <span id="score">{{total}}/{{tries}}</span>
+                        {% endif %}
+                    </span>
+                    <span id="time-span">Time: <span id="time">0</span>/<span
+                            id="total_time">{{total_time}}</span>s</span>
+                </h2>
             </div>
         </div>
         <div class="my-4"></div>
         <div class="row">
             <div class="col-md-12">
-                <pre id="patient">{{patient}}</pre>
+                <pre id="subject">{{subject}}</pre>
             </div>
         </div>
 
@@ -71,31 +85,39 @@
         <script>
             `use strict`;
 
-            var urlParams = new URLSearchParams(window.location.search);
-            var results = urlParams.get('res') || '';
-            var tries = urlParams.get('tries') || 0;
-            var name = urlParams.get('name') || 'Unknown';
-            var dataset = urlParams.get('dataset') || 'ukn';
-            var score = 0;
-            var total = results.length / 2;
-            var result = '';
+            // jquery extend function
+            // https://stackoverflow.com/a/23347763
+            $.extend(
+                {
+                    redirectPost: function (location, args) {
+                        var form = '';
+                        $.each(args, function (key, value) {
+                            value = String(value).split('"').join('\"')
+                            form += '<input type="hidden" name="' + key + '" value="' + value + '">';
+                        });
+                        $('<form action="' + location + '" method="POST">' + form + '</form>').appendTo($(document.body)).submit();
+                    }
+                });
 
-            var time = 0;
-            const TIME_ENC = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+/";
+            const session = "{{ session }}";
+            const idx = {{ idx }};
+            const synth = {{ synth }};
+            const peek = {{ peek }};
+            let score = {{ score }};
+            let total = {{ total }};
+            let time = 0;
+            const total_time = {{ total_time }};
+            const tries = {{ tries }};
+            let result = null;
 
-            for (let i = 0; i < results.length; i += 2) {
-                if (results[i] === 'c' || results[i] === 'C') {
-                    score += 1;
-                }
-            }
-
-            let countdown = {{ countdown }};
-            const is_fake = {{ fake }};
             let finished = false;
             let exit = false;
 
             function set_success(failed) {
                 if (finished) return;
+                finished = true;
+
+                if (!peek) goto_next();
 
                 if (!failed) {
                     score += 1;
@@ -117,71 +139,50 @@
                 $('#finish').removeClass('btn-secondary');
                 $('#finish').addClass('btn-primary');
 
-                if (is_fake) {
-                    $('#fake').addClass('btn-success');
-                    $('#real').addClass('btn-danger');
-                } else {
+                if (synth) {
                     $('#real').addClass('btn-success');
                     $('#fake').addClass('btn-danger');
+                } else {
+                    $('#fake').addClass('btn-success');
+                    $('#real').addClass('btn-danger');
                 }
 
-                $('#score').text(score + '/' + total + (tries ? ' (to ' + tries + ')' : ''));
+                $('#score').text(score + " out of " + total + "/" + tries);
                 $('#time-span').text('');
-                finished = true;
             }
 
+            // Update the time every second.
+            let interval = setInterval(() => {
+                time += 1;
+                $('#time').text(time);
+                $('#total_time').text(total_time + time);
+            }, 1000);
+
             function real() {
-                result = is_fake ? 'W' : 'c';
-                set_success(is_fake);
+                result = synth ? "incorrect" : "correct";
+                set_success(!synth);
             }
 
             function fake() {
-                result = is_fake ? 'C' : 'w';
-                set_success(!is_fake);
+                result = synth ? "correct" : "incorrect";
+                set_success(synth);
             }
 
             function next() {
-                if (!finished) {
-                    total += 1;
-                    result = is_fake ? 'S' : 's';
-                }
+                if (!peek) return;
 
-                if (result) {
-                    result = result + TIME_ENC[Math.min(63, time)];
-                }
+                if (!result) result = "skipped";
 
-                base = (tries && total >= tries || exit) ? '/results' : '/game';
-                window.location.href = base + '?res=' + results + result + '&tries=' + tries + '&name=' + name + '&dataset=' + dataset;
+                goto_next();
+            }
+
+            function goto_next() {
+                $.redirectPost("/game?session=" + session, { session, idx, result, time });
             }
 
             function finish() {
-                finished = true;
-                exit = true;
-                // Ignore a timeout as a last result
-                if ('tT'.includes(result)) {
-                    result = '';
-                }
-                next();
+                window.location.href = "/results?session=" + session;
             }
-
-            $('#score').text(score + '/' + total + (tries ? ' (to ' + tries + ')' : ''));
-            $("#time").text(countdown);
-            $("#name").text(name);
-            // Update the time every second.
-            let interval = setInterval(() => {
-                countdown -= 1;
-                time += 1;
-
-                $("#time").text(countdown);
-                if (countdown <= 3) {
-                    $('#time-span').addClass('text-danger');
-                }
-
-                if (countdown <= 0) {
-                    result = is_fake ? 'T' : 't';
-                    set_success(true);
-                }
-            }, 1000);
         </script>
 </body>
 

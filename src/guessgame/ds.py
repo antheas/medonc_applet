@@ -31,7 +31,7 @@ class Session(TypedDict):
     round: str
     subjects: list[tuple[str, str]]
     results: list[Result]
-
+    finished: bool
 
 class Experiment(TypedDict):
     pretty: str
