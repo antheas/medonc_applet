@@ -1,0 +1,65 @@
+<div class="col-md-3">
+    <table class="table table-bordered">
+        <thead>
+            <tr class="table-primary">
+                <th scope="col"></th>
+                <th scope="col">Patient</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th scope="row">Birth</th>
+                <td>{{demo['born']}}</td>
+            </tr>
+            <tr>
+                <th scope="row">Height</th>
+                <td>{{demo['height']}}</td>
+            </tr>
+            <tr>
+                <th scope="row">BSA</th>
+                <td>{{demo['bsa']}}</td>
+            </tr>
+            <tr>
+                <th scope="row">ICD</th>
+                <td>{{demo['icd']}}</td>
+            </tr>
+            <tr>
+                <th scope="row">ICD<br>Desc</th>
+                <td>{{demo['icd_desc']}}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="col-md-9">
+    <table class="table">
+        <thead>
+            <tr class="table-active">
+                <th scope="col">Date</th>
+                {# <th scope="col">Protocol</th> #}
+                <th scope="col">C#D#</th>
+                <th scope="col">Drug</th>
+                <th scope="col">Dosage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in treat %}
+            {% if t['type'] == 'med' %}
+            <tr>
+                <th scope="row">{{t['date']}}{# {{t['time']}}#}</th>
+                {# <td>{{t['protocol']}}</td> #}
+                <td>{{t['cycle']}}</td>
+                <td>{{t['drug']}}</td>
+                <td>{{t['notes']}}</td>
+            </tr>
+            {% elif t['type'] == 'line' %}
+            <tr class="table-danger">
+                <th scope="row">Protocol</th>
+                <th colspan="3">{{t['protocol']}}</th>
+            </tr>
+            {% elif t['type'] == 'cycle' %}
+            <tr class="table-warning"><td colspan="4" style="height: 1.4rem; padding: 0"></td></tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

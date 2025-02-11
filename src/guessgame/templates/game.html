@@ -75,9 +75,12 @@
         </div>
         <div class="my-4"></div>
         <div class="row">
+            <!--
             <div class="col-md-12">
                 <pre id="subject">{{subject}}</pre>
             </div>
+            -->
+            {{subject|safe}}
         </div>
 
         <script src="{{ url_for('static', filename='bootstrap-4.0.0/js/bootstrap.bundle.min.js')}}"></script>

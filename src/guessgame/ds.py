@@ -62,6 +62,88 @@ class MedOnc(NamedTuple):
     medicine: pd.DataFrame
 
 
+def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
+    from flask import render_template
+    patients, lines, updates, medicine = ds[dataset]
+
+    p = patients.loc[subject]
+    weight = None
+    bsa = None
+
+    demo = {
+        "born": p.birth.year,
+        "icd": p.primary_icd,
+        "icd_desc": p.primary_description,
+        "height": f"{p.height:.0f}m", 
+        "bsa": None,
+        "weight": None,
+        "weight_date": None
+    }
+
+    treat = []
+
+    plines = lines[lines["id"] == subject]
+    for i, (lid, l) in enumerate(plines.iterrows()):
+        treat.append({"type": "line", "protocol": l.protocol})
+        for j, (uid, u) in enumerate(updates[updates["line_id"] == lid].iterrows()):
+            treat.append({"type": "cycle"})
+
+            if not math.isnan(u.bsa) and not demo['bsa']:
+                demo['bsa'] = f"{u.bsa:.2f}"
+                bsa=bsa
+
+            if not math.isnan(u.weight):
+                if not demo['weight']:
+                    weight = weight
+                    demo["weight"] = f"{u.weight:.1}kg"
+                if not demo['weight_date']:
+                    demo["weight_date"] = u.weight_date.strftime(f"%d/%m/%Y")
+
+            for k, (mid, m) in enumerate(
+                medicine[medicine["update_id"] == uid].iterrows()
+            ):
+                # break
+                notes = m.notes
+                if isinstance(notes, str):
+                    match = FPAT.match(notes)
+                    if match:
+                        pfuns = {
+                            "fmgm2": lambda d, acc: (
+                                round(d * bsa / acc) * acc if bsa else "INV: no BSA"
+                            ),
+                            "fmgkg": lambda d, acc: (
+                                round(d * weight / acc) * acc
+                                if weight
+                                else "INV: no weight"
+                            ),
+                            "fauc": lambda d, acc: "AUC:TODO",
+                        }
+                        start, end = match.span()
+                        fn = match.group("fun")
+                        args = eval(match.group("args"))
+                        dosage = pfuns[fn](*args) if fn in pfuns else f"UKN:{fn}"
+                        notes = f"{notes[:start]}{dosage}{notes[end:]}"
+
+                if str(m.drug) != "nan":
+                    treat.append(
+                        {
+                            "type": "med",
+                            "date": u.date.strftime(f"%d/%m/%Y"),
+                            "time": m.time.strftime(f"%H:%M"),
+                            "drug": m.drug,
+                            "cycle": f"C{u.cycle:02d}D{u.day:02d}",
+                            "notes": notes,
+                            "protocol": l.protocol,
+                        }
+                    )
+
+    return render_template(
+        "patient.html",
+        demo=demo,
+        treat=treat,
+    )
+
+
 def generate_patient(ds: dict[str, MedOnc], dataset: str, subject: Any):
     out = ""
 
@@ -141,7 +223,7 @@ def load_medonc_data(ds_path: str):
 dataset_functions: dict[str, DatasetFunctions] = {
     "medonc": {
         "load": load_medonc_data,
-        "generate": generate_patient,
+        "generate": generate_patient_v2,
         "sample": sample_patients,
     },
     "fake": {
@@ -186,6 +268,10 @@ def load_data(ds_path: str, ds_filter: list[str] | None = None):
     datasets = {}
     for k in dataset_names:
         if ds_filter and k not in ds_filter:
+            continue
+
+        if k.startswith("_"):
+            # Allow disabling datasets with _ prefix (no JSON comments)
             continue
 
         logger.info(f"Loading dataset '{k}'")
