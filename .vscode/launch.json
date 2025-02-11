@@ -13,6 +13,18 @@
             "args": [
                 "./example"
             ],
-        }
+        },
+        {
+            "name": "Sample Test",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "guessgame.ds",
+            "console": "integratedTerminal",
+            "args": [
+                "./experiments",
+                "orig",
+                "100"
+            ],
+        },
     ]
 }

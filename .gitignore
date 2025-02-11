@@ -2,3 +2,5 @@ venv
 *.egg-info
 *.pyc
 **/results/*.json
+experiments
+scratch.txt

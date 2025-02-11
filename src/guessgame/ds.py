@@ -1,9 +1,11 @@
+import logging.config
 import re
 import math
 import os
 import json
 from typing import NamedTuple, Any, TypedDict, Callable, Literal, cast
 import pandas as pd
+import time
 
 import logging
 
@@ -33,6 +35,13 @@ class Session(TypedDict):
     results: list[Result]
     finished: bool
 
+
+class DatasetFunctions(TypedDict):
+    load: Callable[[str], Any]
+    generate: Callable[[dict[str, Any], str, Any], str]
+    sample: Callable[[dict[str, Any], str, int], None]
+
+
 class Experiment(TypedDict):
     pretty: str
     type: str
@@ -43,6 +52,7 @@ class Experiment(TypedDict):
     datasets: dict[str, Any]
     rounds: dict[str, Round]
     generate: Callable[[dict[str, Any], str, Any], str]
+    funs: DatasetFunctions
 
 
 class MedOnc(NamedTuple):
@@ -50,11 +60,6 @@ class MedOnc(NamedTuple):
     lines: pd.DataFrame
     updates: pd.DataFrame
     medicine: pd.DataFrame
-
-
-class DatasetFunctions(TypedDict):
-    load: Callable[[str], Any]
-    generate: Callable[[dict[str, Any], str, Any], str]
 
 
 def generate_patient(ds: dict[str, MedOnc], dataset: str, subject: Any):
@@ -117,6 +122,13 @@ def generate_patient(ds: dict[str, MedOnc], dataset: str, subject: Any):
     return out
 
 
+def sample_patients(ds: dict[str, MedOnc], dataset: str, num: int):
+    import numpy as np
+
+    for idx in np.random.choice(ds[dataset].patients.index.unique(), num):
+        print(f"[\"{dataset}\", {idx}],")
+
+
 def load_medonc_data(ds_path: str):
     return MedOnc(
         pd.read_parquet(os.path.join(ds_path, "patients.pq")),
@@ -127,12 +139,20 @@ def load_medonc_data(ds_path: str):
 
 
 dataset_functions: dict[str, DatasetFunctions] = {
-    "medonc": {"load": load_medonc_data, "generate": generate_patient},
-    "fake": {"load": lambda x: x, "generate": lambda x, y, z: f"{y} {z}"},
+    "medonc": {
+        "load": load_medonc_data,
+        "generate": generate_patient,
+        "sample": sample_patients,
+    },
+    "fake": {
+        "load": lambda x: x,
+        "generate": lambda x, y, z: f"{y} {z}",
+        "sample": lambda x, y, z: None,
+    },
 }
 
 
-def load_data(ds_path: str):
+def load_data(ds_path: str, ds_filter: list[str] | None = None):
     assert os.path.exists(ds_path), f"Path '{ds_path}' does not exist"
 
     assert os.path.isdir(ds_path), f"Path '{ds_path}' is not a directory"
@@ -165,21 +185,34 @@ def load_data(ds_path: str):
 
     datasets = {}
     for k in dataset_names:
+        if ds_filter and k not in ds_filter:
+            continue
+
+        logger.info(f"Loading dataset '{k}'")
+        start = time.perf_counter()
         ds_path = os.path.join(experiment_path, "data", k)
         assert os.path.exists(ds_path), f"Dataset '{ds_path}' does not exist"
 
         dataset = load_fun(ds_path)
         datasets[k] = dataset
 
+        logger.info(f"Loaded dataset '{k}' in {time.perf_counter()-start:.1f}s")
+
     round_dir = os.path.join(experiment_path, "rounds")
     assert os.path.exists(round_dir), f"Round directory '{round_dir}' does not exist"
 
     rounds = {}
     for k in sorted(list(os.listdir(round_dir))):
-        rounds[k.replace(".json", "")] = json.load(open(os.path.join(round_dir, k)))
+        try:
+            rounds[k.replace(".json", "")] = json.load(open(os.path.join(round_dir, k)))
+        except Exception:
+            logger.exception(f"Round '{k}' file is corrupted")
 
     ds_name_concat = ", ".join([f"'{k}' ({v})" for k, v in dataset_names.items()])
     logger.info(f"Loaded experiment '{pretty}' with datasets '{ds_name_concat}'")
+
+    funs = dataset_functions[dataset_type]
+
     return Experiment(
         pretty=pretty,
         type=dataset_type,
@@ -187,8 +220,9 @@ def load_data(ds_path: str):
         dataset_names=dataset_names,
         datasets=datasets,
         rounds=rounds,
-        generate=dataset_functions[dataset_type]["generate"],
+        generate=funs["generate"],
         session_path=os.path.join(experiment_path, "results"),
+        funs=funs,
     )
 
 
@@ -235,3 +269,19 @@ def delete_session(exp: Experiment, session_id: str):
         os.remove(session_fn)
     else:
         logger.warning(f"Session '{session_id}' not found")
+
+
+if __name__ == "__main__":
+    import sys
+
+    logging.basicConfig()
+
+    if len(sys.argv) < 4:
+        # E.g., python -m guessgame.ds ./experiments orig 25 | tee scratch.txt
+        print(f"Syntax: {sys.argv[0]} <data> <dataset> <samples>")
+        sys.exit(1)
+
+    exp = load_data(sys.argv[1], [sys.argv[2]])
+    exp["funs"]["sample"](
+        exp["datasets"], sys.argv[2], int(sys.argv[3])
+    )
