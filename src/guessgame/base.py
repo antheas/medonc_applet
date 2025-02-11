@@ -65,7 +65,7 @@ def start():
     subjects = experiment["rounds"][round]["subjects"]
     random.shuffle(subjects)
 
-    session_id = f"{name}_{round}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    session_id = f"{name}_{round}_{datetime.now().strftime('%Y%m%d_%H%M%S')}".lower()
 
     sessions[session_id] = {
         "version": VERSION,
@@ -175,7 +175,7 @@ def results():
 
     score = 0
     total = len(session["results"])
-    
+
     for i, result in enumerate(session["results"]):
         dataset, _ = session["subjects"][i]
         if result["result"] == "correct":
