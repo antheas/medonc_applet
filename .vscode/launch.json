@@ -15,6 +15,17 @@
             ],
         },
         {
+            "name": "MedOnc Dataset",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "guessgame",
+            "console": "integratedTerminal",
+            "args": [
+                "./experiments",
+                "--prod"
+            ],
+        },
+        {
             "name": "Sample Test",
             "type": "debugpy",
             "request": "launch",

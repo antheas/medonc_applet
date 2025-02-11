@@ -4,3 +4,4 @@ venv
 **/results/*.json
 experiments
 scratch.txt
+notebooks

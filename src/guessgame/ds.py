@@ -67,7 +67,7 @@ def generate_patient(ds: dict[str, MedOnc], dataset: str, subject: Any):
 
     patients, lines, updates, medicine = ds[dataset]
 
-    p = patients[subject]
+    p = patients.loc[subject]
     weight = None
     bsa = None
     height = None
@@ -76,7 +76,7 @@ def generate_patient(ds: dict[str, MedOnc], dataset: str, subject: Any):
     if not math.isnan(p.height):
         height = p.height
 
-    plines = lines[lines["id"] == id]
+    plines = lines[lines["id"] == subject]
     for i, (lid, l) in enumerate(plines.iterrows()):
         out += f"> L{i+ 1:02d}/{len(plines)}: {l.protocol}\n"
 
