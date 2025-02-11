@@ -159,9 +159,10 @@ def results():
         return redirect("/")
 
     session = sessions[session_id]
-    session["finished"] = True
-    updated.add(session_id)
-    save_sessions(experiment, sessions, updated)
+    if not session["finished"]:
+        session["finished"] = True
+        updated.add(session_id)
+        save_sessions(experiment, sessions, updated)
 
     results = {
         k: {
