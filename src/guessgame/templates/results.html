@@ -59,11 +59,13 @@
                             </thead>
                             <tbody>
                                 {% for dataset in results %}
+                                {% if results[dataset]['incorrect'] > 0 or results[dataset]['correct'] > 0 %}
                                 <tr>
                                     <th scope="row">{{ results[dataset]['name'] }}</th>
                                     <td>{{ results[dataset]['incorrect'] }}</td>
                                     <td>{{ results[dataset]['correct'] }}</td>
                                 </tr>
+                                {% endif %}
                                 {% endfor %}
                             </tbody>
                         </table>
