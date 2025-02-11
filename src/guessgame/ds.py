@@ -209,7 +209,7 @@ def load_data(ds_path: str, ds_filter: list[str] | None = None):
             logger.exception(f"Round '{k}' file is corrupted")
 
     ds_name_concat = ", ".join([f"'{k}' ({v})" for k, v in dataset_names.items()])
-    logger.info(f"Loaded experiment '{pretty}' with datasets '{ds_name_concat}'")
+    logger.info(f"Loaded experiment '{pretty}' with datasets {ds_name_concat}")
 
     funs = dataset_functions[dataset_type]
 

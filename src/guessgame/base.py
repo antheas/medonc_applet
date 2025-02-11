@@ -221,6 +221,8 @@ def main():
         # We are deploying, reloads will reopen the browser
         app.debug = False
         webbrowser.open("http://localhost:6565/")
+    elif "--prod" in sys.argv:
+        app.debug = False
     else:
         app.debug = True
 
