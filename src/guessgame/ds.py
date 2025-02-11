@@ -92,12 +92,12 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                 demo['bsa'] = f"{u.bsa:.2f}"
                 bsa=bsa
 
-            if not math.isnan(u.weight):
-                if not demo['weight']:
-                    weight = weight
-                    demo["weight"] = f"{u.weight:.1}kg"
-                if not demo['weight_date']:
-                    demo["weight_date"] = u.weight_date.strftime(f"%d/%m/%Y")
+            if not math.isnan(u.weight) and not demo['weight']:
+                weight = weight
+                demo["weight"] = f"{u.weight:.1}kg"
+
+            if not demo['weight_date'] and u.weight_date and not pd.isna(u.weight_date):
+                demo["weight_date"] = u.weight_date.strftime(f"%d/%m/%Y")
 
             for k, (mid, m) in enumerate(
                 medicine[medicine["update_id"] == uid].iterrows()
