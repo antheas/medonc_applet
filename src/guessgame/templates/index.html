@@ -35,6 +35,15 @@
                 <div class="card" style="width: 26rem;">
                     <div class="card-body">
                         <h5 class="card-title">Experiment Setup</h5>
+                        <div class="dropdown-divider"></div>
+
+                        <div class="input-group my-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="inputGroup-sizing-default">Name</span>
+                            </div>
+                            <input type="text" class="form-control" aria-label="Default" id="name" name="name"
+                                aria-describedby="inputGroup-sizing-default" required>
+                        </div>
 
                         <div class="dropdown-divider"></div>
                         <h6 class="card-subtitle mb-2 mt-3 text-muted">Select round</h6>
@@ -49,15 +58,6 @@
                         </div>
                         {% endfor %}
 
-                        <div class="dropdown-divider"></div>
-
-                        <div class="input-group my-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text" id="inputGroup-sizing-default">Name</span>
-                            </div>
-                            <input type="text" class="form-control" aria-label="Default" id="name" name="name"
-                                aria-describedby="inputGroup-sizing-default" required>
-                        </div>
                         <div class="dropdown-divider"></div>
                         <input class="btn btn-primary mt-2" type="submit" value="Begin">
 
