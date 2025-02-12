@@ -74,7 +74,7 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
         "born": p.birth.year,
         "icd": p.primary_icd,
         "icd_desc": p.primary_description,
-        "height": f"{p.height:.0f}m", 
+        "height": f"{p.height/100:.2f}m", 
         "bsa": None,
         "weight": None,
         "weight_date": None,
