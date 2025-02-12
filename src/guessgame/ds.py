@@ -77,7 +77,8 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
         "height": f"{p.height:.0f}m", 
         "bsa": None,
         "weight": None,
-        "weight_date": None
+        "weight_date": None,
+        "age": None,
     }
 
     treat = []
@@ -87,6 +88,12 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
         treat.append({"type": "line", "protocol": l.protocol})
         for j, (uid, u) in enumerate(updates[updates["line_id"] == lid].iterrows()):
             treat.append({"type": "cycle"})
+
+            if not demo['age']:
+                try:
+                    demo['age'] = f"{(u.date - p.birth).days / 365:.0f}"
+                except Exception:
+                    pass
 
             if not math.isnan(u.bsa) and not demo['bsa']:
                 demo['bsa'] = f"{u.bsa:.2f}"
