@@ -1,4 +1,4 @@
-<div class="col-md-3">
+<div class="col-md-4">
     <table class="table table-bordered">
         <thead>
             <tr class="table-primary">
@@ -8,12 +8,16 @@
         </thead>
         <tbody>
             <tr>
-                <th scope="row">Age</th>
-                <td>{{demo['age']}}</td>
+                <th scope="row">Birth</th>
+                <td>{{demo['birth']}} ({{demo['age']}})</td>
             </tr>
             <tr>
-                <th scope="row">DOD</th>
-                <td>{{demo['death']}}</td>
+                <th scope="row">Death</th>
+                <td>{{demo['death']}}{% if demo['age_death'] %} ({{demo['age_death']}}){% endif %}</td>
+            </tr>
+            <tr>
+                <th scope="row">Last Visit</th>
+                <td>{{demo['last_visit']}}{% if demo['age_last_visit'] %} ({{demo['age_last_visit']}}){% endif %}</td>
             </tr>
             <tr>
                 <th scope="row">Height</th>
@@ -38,7 +42,7 @@
         </tbody>
     </table>
 </div>
-<div class="col-md-9">
+<div class="col-md-8">
     <table class="table">
         <thead>
             <tr class="table-active">

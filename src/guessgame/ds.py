@@ -80,7 +80,10 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
         "weight": None,
         "weight_date": None,
         "age": None,
-        "death": "NA",
+        "age_last_visit": None,
+        "birth": p.birth.strftime(f"%d/%m/%Y"),
+        "death": "-",
+        "last_visit": "-",
     }
 
     treat = []
@@ -171,7 +174,7 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                     treat.append(
                         {
                             "type": "med",
-                            "date": u.date.strftime(f"%d/%m"),
+                            "date": u.date.strftime(f"%d/%m/%Y"),
                             "time": m.time.strftime(f"%H:%M"),
                             "drug": m.drug,
                             "cycle": f"C{u.cycle:02d}D{u.day:02d}",
@@ -186,9 +189,15 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
             if has_cycle:
                 treat.append({"type": "cycle"})
 
-    if treat_date is not None and not pd.isna(p["months_to_death"]):
-        ddate = treat_date + pd.Timedelta(p["months_to_death"] * 30, "day")
-        demo["death"] = f"{(ddate - p.birth).days / 365:.0f} years"
+    if treat_date is not None:
+        if not pd.isna(p["months_to_death"]):
+            ddate = treat_date + pd.Timedelta(p["months_to_death"] * 30, "day")
+            demo["death"] = ddate.strftime(f"%d/%m/%Y")
+            demo["age_death"] = f"{(ddate - p.birth).days / 365:.0f} years"
+        else:
+            ddate = treat_date + pd.Timedelta(p["months_to_censor"] * 30, "day")
+            demo["last_visit"] = ddate.strftime(f"%d/%m/%Y")
+            demo["age_last_visit"] = f"{(ddate - p.birth).days / 365:.0f} years"
 
     return render_template(
         "patient.html",
