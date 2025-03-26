@@ -64,6 +64,7 @@ class MedOnc(NamedTuple):
 
 def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
     from flask import render_template
+
     patients, lines, updates, medicine = ds[dataset]
 
     p = patients.loc[subject]
@@ -71,10 +72,9 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
     bsa = None
 
     demo = {
-        "born": p.birth.year,
         "icd": p.primary_icd,
         "icd_desc": p.primary_description,
-        "height": f"{p.height/100:.2f}m", 
+        "height": f"{p.height/100:.2f}m",
         "bsa": None,
         "weight": None,
         "weight_date": None,
@@ -84,26 +84,47 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
     treat = []
 
     plines = lines[lines["id"] == subject]
-    for i, (lid, l) in enumerate(plines.iterrows()):
-        treat.append({"type": "line", "protocol": l.protocol})
-        for j, (uid, u) in enumerate(updates[updates["line_id"] == lid].iterrows()):
-            treat.append({"type": "cycle"})
 
-            if not demo['age']:
+    # Prefill data to avoid invalids
+    for i, (lid, l) in enumerate(plines.iterrows()):
+        for j, (uid, u) in enumerate(updates[updates["line_id"] == lid].iterrows()):
+            if not demo["age"]:
                 try:
-                    demo['age'] = f"{(u.date - p.birth).days / 365:.0f}"
+                    demo["age"] = f"{(u.date - p.birth).days / 365:.0f}"
                 except Exception:
                     pass
 
-            if not math.isnan(u.bsa) and not demo['bsa']:
-                demo['bsa'] = f"{u.bsa:.2f}"
-                bsa=bsa
+            if not math.isnan(u.bsa) and not demo["bsa"]:
+                demo["bsa"] = f"{u.bsa:.2f}"
+                bsa = u.bsa
 
-            if not math.isnan(u.weight) and not demo['weight']:
+            if not math.isnan(u.weight) and not demo["weight"]:
+                weight = u.weight
+                demo["weight"] = f"{u.weight:.1f}kg"
+
+            if not demo["weight_date"] and u.weight_date and not pd.isna(u.weight_date):
+                demo["weight_date"] = u.weight_date.strftime(f"%d/%m/%Y")
+
+    for i, (lid, l) in enumerate(plines.iterrows()):
+        treat.append({"type": "line", "protocol": l.protocol})
+        for j, (uid, u) in enumerate(updates[updates["line_id"] == lid].iterrows()):
+            has_cycle = False
+
+            if not demo["age"]:
+                try:
+                    demo["age"] = f"{(u.date - p.birth).days / 365:.0f}"
+                except Exception:
+                    pass
+
+            if not math.isnan(u.bsa) and not demo["bsa"]:
+                demo["bsa"] = f"{u.bsa:.2f}"
+                bsa = bsa
+
+            if not math.isnan(u.weight) and not demo["weight"]:
                 weight = weight
                 demo["weight"] = f"{u.weight:.1}kg"
 
-            if not demo['weight_date'] and u.weight_date and not pd.isna(u.weight_date):
+            if not demo["weight_date"] and u.weight_date and not pd.isna(u.weight_date):
                 demo["weight_date"] = u.weight_date.strftime(f"%d/%m/%Y")
 
             for k, (mid, m) in enumerate(
@@ -111,31 +132,43 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
             ):
                 # break
                 notes = m.notes
+                write = str(m.drug) != "nan"
                 if isinstance(notes, str):
-                    match = FPAT.match(notes)
+                    match = FPAT.search(notes)
                     if match:
                         pfuns = {
                             "fmgm2": lambda d, acc: (
-                                round(d * bsa / acc) * acc if bsa else "INV: no BSA"
+                                round(d * bsa / acc) * acc if bsa else None
                             ),
                             "fmgkg": lambda d, acc: (
-                                round(d * weight / acc) * acc
-                                if weight
-                                else "INV: no weight"
+                                round(d * weight / acc) * acc if weight else None
                             ),
-                            "fauc": lambda d, acc: "AUC:TODO",
+                            "fauc": lambda d, acc: None,
+                            "rmgm2": lambda d, acc: (
+                                round(d / bsa / acc) * acc if weight else None
+                            ),
                         }
                         start, end = match.span()
                         fn = match.group("fun")
                         args = eval(match.group("args"))
-                        dosage = pfuns[fn](*args) if fn in pfuns else f"UKN:{fn}"
-                        notes = f"{notes[:start]}{dosage}{notes[end:]}"
+                        if fn in pfuns:
+                            dosage = pfuns[fn](*args)
+                        else:
+                            print(f"Function {fn}" not in pfuns)
+                            dosage = None
 
-                if str(m.drug) != "nan":
+                        if dosage is not None:
+                            notes = f"{notes[:start]}{dosage}{notes[end:]}"
+                        else:
+                            print(f"Dosage of {notes} is none", weight, bsa)
+                        # else:
+                        #     write = False
+
+                if write:
                     treat.append(
                         {
                             "type": "med",
-                            "date": u.date.strftime(f"%d/%m/%Y"),
+                            "date": u.date.strftime(f"%d/%m"),
                             "time": m.time.strftime(f"%H:%M"),
                             "drug": m.drug,
                             "cycle": f"C{u.cycle:02d}D{u.day:02d}",
@@ -143,6 +176,10 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                             "protocol": l.protocol,
                         }
                     )
+                    has_cycle = True
+
+            if has_cycle:
+                treat.append({"type": "cycle"})
 
     return render_template(
         "patient.html",
@@ -215,7 +252,7 @@ def sample_patients(ds: dict[str, MedOnc], dataset: str, num: int):
     import numpy as np
 
     for idx in np.random.choice(ds[dataset].patients.index.unique(), num):
-        print(f"[\"{dataset}\", {idx}],")
+        print(f'["{dataset}", {idx}],')
 
 
 def load_medonc_data(ds_path: str):
@@ -375,6 +412,4 @@ if __name__ == "__main__":
         sys.exit(1)
 
     exp = load_data(sys.argv[1], [sys.argv[2]])
-    exp["funs"]["sample"](
-        exp["datasets"], sys.argv[2], int(sys.argv[3])
-    )
+    exp["funs"]["sample"](exp["datasets"], sys.argv[2], int(sys.argv[3]))
