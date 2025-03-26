@@ -1,6 +1,6 @@
 #!/bin/bash
 
-EXPERIMENT=medonc-v1
+EXPERIMENT=medonc-v2
 DATASET_NAME=orig
 
 rm -rf experiments/$EXPERIMENT/data/$DATASET_NAME

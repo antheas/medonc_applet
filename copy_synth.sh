@@ -5,7 +5,7 @@ if [ -z "$1" ] || [ -z "$2" ]; then
     exit 1
 fi
 
-EXPERIMENT=medonc-v1
+EXPERIMENT=medonc-v2
 DATASET_NAME=$1
 
 # Get timestamps:
