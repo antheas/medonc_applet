@@ -5,6 +5,7 @@ import os
 import json
 from typing import NamedTuple, Any, TypedDict, Callable, Literal, cast
 import pandas as pd
+import numpy as np
 import time
 
 import logging
@@ -79,9 +80,11 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
         "weight": None,
         "weight_date": None,
         "age": None,
+        "death": "NA",
     }
 
     treat = []
+    treat_date = None
 
     plines = lines[lines["id"] == subject]
 
@@ -90,7 +93,7 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
         for j, (uid, u) in enumerate(updates[updates["line_id"] == lid].iterrows()):
             if not demo["age"]:
                 try:
-                    demo["age"] = f"{(u.date - p.birth).days / 365:.0f}"
+                    demo["age"] = f"{(u.date - p.birth).days / 365:.0f} years"
                 except Exception:
                     pass
 
@@ -145,7 +148,7 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                             ),
                             "fauc": lambda d, acc: None,
                             "rmgm2": lambda d, acc: (
-                                round(d / bsa / acc) * acc if weight else None
+                                round(d / bsa / 1) * 1 if weight else None
                             ),
                         }
                         start, end = match.span()
@@ -177,9 +180,15 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                         }
                     )
                     has_cycle = True
+                    if u.date is not None:
+                        treat_date = u.date
 
             if has_cycle:
                 treat.append({"type": "cycle"})
+
+    if treat_date is not None and not pd.isna(p["months_to_death"]):
+        ddate = treat_date + pd.Timedelta(p["months_to_death"] * 30, "day")
+        demo["death"] = f"{(ddate - p.birth).days / 365:.0f} years"
 
     return render_template(
         "patient.html",
