@@ -73,11 +73,13 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
     bsa = None
 
     demo = {
-        "icd": p.primary_icd,
-        "icd_desc": p.primary_description,
-        "height": f"{p.height/100:.2f}m",
-        "bsa": None,
-        "weight": None,
+        "icd": p.primary_icd if not pd.isna(p.primary_icd) else "-",
+        "icd_desc": (
+            p.primary_description if not pd.isna(p.primary_description) else "-"
+        ),
+        "height": f"{p.height/100:.2f}m" if not pd.isna(p.height) else '-',
+        "bsa": '-',
+        "weight": '-',
         "weight_date": None,
         "age": None,
         "age_last_visit": None,
@@ -100,11 +102,11 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                 except Exception:
                     pass
 
-            if not math.isnan(u.bsa) and not demo["bsa"]:
+            if not math.isnan(u.bsa) and demo["bsa"] == '-':
                 demo["bsa"] = f"{u.bsa:.2f}"
                 bsa = u.bsa
 
-            if not math.isnan(u.weight) and not demo["weight"]:
+            if not math.isnan(u.weight) and demo["weight"] == '-':
                 weight = u.weight
                 demo["weight"] = f"{u.weight:.1f}kg"
 
@@ -144,14 +146,14 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                     if match:
                         pfuns = {
                             "fmgm2": lambda d, acc: (
-                                round(d * bsa / acc) * acc if bsa else None
+                                (d * bsa) // 1 if bsa else None
                             ),
                             "fmgkg": lambda d, acc: (
-                                round(d * weight / acc) * acc if weight else None
+                                (d * weight) // 1 if weight else None
                             ),
                             "fauc": lambda d, acc: None,
                             "rmgm2": lambda d, acc: (
-                                round(d / bsa / 1) * 1 if weight else None
+                                d // bsa if weight else None
                             ),
                         }
                         start, end = match.span()
@@ -164,7 +166,7 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                             dosage = None
 
                         if dosage is not None:
-                            notes = f"{notes[:start]}{dosage}{notes[end:]}"
+                            notes = f"{notes[:start]}{int(dosage)}{notes[end:]}"
                         else:
                             print(f"Dosage of {notes} is none", weight, bsa)
                         # else:
@@ -194,10 +196,10 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
             ddate = treat_date + pd.Timedelta(p["months_to_death"] * 30, "day")
             demo["death"] = ddate.strftime(f"%d/%m/%Y")
             demo["age_death"] = f"{(ddate - p.birth).days / 365:.0f} years"
-        else:
-            ddate = treat_date + pd.Timedelta(p["months_to_censor"] * 30, "day")
-            demo["last_visit"] = ddate.strftime(f"%d/%m/%Y")
-            demo["age_last_visit"] = f"{(ddate - p.birth).days / 365:.0f} years"
+
+        ddate = treat_date
+        demo["last_visit"] = ddate.strftime(f"%d/%m/%Y")
+        demo["age_last_visit"] = f"{(ddate - p.birth).days / 365:.0f} years"
 
     return render_template(
         "patient.html",
