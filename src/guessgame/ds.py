@@ -153,7 +153,7 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                             ),
                             "fauc": lambda d, acc: None,
                             "rmgm2": lambda d, acc: (
-                                d // bsa if weight else None
+                                d // bsa if bsa else None
                             ),
                         }
                         start, end = match.span()
