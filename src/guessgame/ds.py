@@ -263,7 +263,7 @@ def generate_patient(ds: dict[str, MedOnc], dataset: str, subject: Any):
                                 if weight
                                 else "INV: no weight"
                             ),
-                            "fauc": lambda d, acc: "AUC:TODO",
+                            "fauc": lambda d, acc: round(84 * d / acc) * acc,
                         }
                         start, end = match.span()
                         fn = match.group("fun")
