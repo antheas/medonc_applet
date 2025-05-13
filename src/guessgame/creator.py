@@ -7,8 +7,20 @@ import random
 def sample_medonc(datadir: str, num: int):
     import pandas as pd
 
-    patients = pd.read_parquet(os.path.join(datadir, "patients.pq"))
-    ids = list(set(patients.index))
+    patients = pd.read_parquet(os.path.join(datadir, "patients.pq"), columns=["sex"])
+    lines = pd.read_parquet(os.path.join(datadir, "lines.pq"), columns=["id"])
+    updates = pd.read_parquet(os.path.join(datadir, "updates.pq"), columns=["line_id"])
+    medicine = pd.read_parquet(
+        os.path.join(datadir, "medicine.pq"), columns=["update_id"]
+    )
+
+    ids = sorted(
+        set(
+            medicine.merge(updates, left_on="update_id", right_index=True, how="inner")
+            .merge(lines, left_on="line_id", right_index=True, how="inner")
+            .merge(patients, left_on="id", right_index=True, how="inner")["id"]
+        )
+    )
 
     return random.sample(ids, num)
 
@@ -80,7 +92,7 @@ def main():
         print("ERROR: round file already exists. Delete it first.")
 
     os.makedirs(round_dir, exist_ok=True)
-    with open(round_fn, 'w') as f:
+    with open(round_fn, "w") as f:
         json.dump(round_data, f)
 
 

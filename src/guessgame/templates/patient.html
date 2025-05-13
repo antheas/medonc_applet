@@ -15,10 +15,10 @@
                 <th scope="row">Death</th>
                 <td>{{demo['death']}}{% if demo['age_death'] %} ({{demo['age_death']}}){% endif %}</td>
             </tr>
-            <tr>
-                <th scope="row">Last Visit</th>
-                <td>{{demo['last_visit']}}{% if demo['age_last_visit'] %} ({{demo['age_last_visit']}}){% endif %}</td>
-            </tr>
+            {# <tr> #}
+            {#     <th scope="row">Last Visit</th> #}
+            {#     <td>{{demo['last_visit']}}{% if demo['age_last_visit'] %} ({{demo['age_last_visit']}}){% endif %}</td> #}
+            {# </tr> #}
             <tr>
                 <th scope="row">Height</th>
                 <td>{{demo['height']}}</td>
@@ -64,9 +64,7 @@
                 <td>{{t['notes']}}</td>
             </tr>
             {% elif t['type'] == 'line' %}
-            <tr class="table-danger">
-                <th scope="row">Protocol</th>
-                <th colspan="3">{{t['protocol']}}</th>
+            <tr class="table-danger"><td colspan="4" style="height: 1.4rem; padding: 0"></td>
             </tr>
             {% elif t['type'] == 'cycle' %}
             <tr class="table-warning"><td colspan="4" style="height: 1.4rem; padding: 0"></td></tr>

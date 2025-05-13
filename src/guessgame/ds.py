@@ -77,9 +77,9 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
         "icd_desc": (
             p.primary_description if not pd.isna(p.primary_description) else "-"
         ),
-        "height": f"{p.height/100:.2f}m" if not pd.isna(p.height) else '-',
-        "bsa": '-',
-        "weight": '-',
+        "height": f"{p.height/100:.2f}m" if not pd.isna(p.height) else "-",
+        "bsa": "-",
+        "weight": "-",
         "weight_date": None,
         "age": None,
         "age_last_visit": None,
@@ -102,11 +102,11 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                 except Exception:
                     pass
 
-            if not math.isnan(u.bsa) and demo["bsa"] == '-':
+            if not math.isnan(u.bsa) and demo["bsa"] == "-":
                 demo["bsa"] = f"{u.bsa:.2f}"
                 bsa = u.bsa
 
-            if not math.isnan(u.weight) and demo["weight"] == '-':
+            if not math.isnan(u.weight) and demo["weight"] == "-":
                 weight = u.weight
                 demo["weight"] = f"{u.weight:.1f}kg"
 
@@ -114,8 +114,17 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                 demo["weight_date"] = u.weight_date.strftime(f"%d/%m/%Y")
 
     for i, (lid, l) in enumerate(plines.iterrows()):
-        treat.append({"type": "line", "protocol": l.protocol})
-        for j, (uid, u) in enumerate(updates[updates["line_id"] == lid].iterrows()):
+        rows = list(updates[updates["line_id"] == lid].iterrows())
+        if not len(rows):
+            continue
+
+        # treat.append(
+        #     {
+        #         "type": "line",
+        #         "protocol": l.protocol,
+        #     },
+        # )
+        for j, (uid, u) in enumerate(rows):
             has_cycle = False
 
             if not demo["age"]:
@@ -145,16 +154,12 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                     match = FPAT.search(notes)
                     if match:
                         pfuns = {
-                            "fmgm2": lambda d, acc: (
-                                (d * bsa) // 1 if bsa else None
-                            ),
+                            "fmgm2": lambda d, acc: ((d * bsa) // 1 if bsa else None),
                             "fmgkg": lambda d, acc: (
                                 (d * weight) // 1 if weight else None
                             ),
                             "fauc": lambda d, acc: None,
-                            "rmgm2": lambda d, acc: (
-                                d // bsa if bsa else None
-                            ),
+                            "rmgm2": lambda d, acc: (d // bsa if bsa else None),
                         }
                         start, end = match.span()
                         fn = match.group("fun")
@@ -179,9 +184,9 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                             "date": u.date.strftime(f"%d/%m/%Y"),
                             "time": m.time.strftime(f"%H:%M"),
                             "drug": m.drug,
-                            "cycle": f"C{u.cycle:02d}D{u.day:02d}",
+                            # "cycle": f"C{u.cycle:02d}D{u.day:02d}",
                             "notes": notes,
-                            "protocol": l.protocol,
+                            # "protocol": l.protocol,
                         }
                     )
                     has_cycle = True
@@ -191,9 +196,13 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
             if has_cycle:
                 treat.append({"type": "cycle"})
 
+    # Remove last treatment line for evenness
+    if treat and treat[-1] and treat[-1].get("type", None) == "cycle":
+        del treat[-1]
+
     if treat_date is not None:
-        if not pd.isna(p["months_to_death"]):
-            ddate = treat_date + pd.Timedelta(p["months_to_death"] * 30, "day")
+        if not pd.isna(p["months_to_death"]) and p["months_to_death"] > 0:
+            ddate = treat_date + pd.Timedelta(abs(p["months_to_death"]) * 30, "day")
             demo["death"] = ddate.strftime(f"%d/%m/%Y")
             demo["age_death"] = f"{(ddate - p.birth).days / 365:.0f} years"
 
