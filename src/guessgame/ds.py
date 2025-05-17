@@ -102,15 +102,20 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                 except Exception:
                     pass
 
-            if not math.isnan(u.bsa) and demo["bsa"] == "-":
+            if hasattr(u, "bsa") and not math.isnan(u.bsa) and demo["bsa"] == "-":
                 demo["bsa"] = f"{u.bsa:.2f}"
                 bsa = u.bsa
 
-            if not math.isnan(u.weight) and demo["weight"] == "-":
+            if hasattr(u, "weight") and not math.isnan(u.weight) and demo["weight"] == "-":
                 weight = u.weight
                 demo["weight"] = f"{u.weight:.1f}kg"
 
-            if not demo["weight_date"] and u.weight_date and not pd.isna(u.weight_date):
+            if (
+                hasattr(u, "weight_date")
+                and not demo["weight_date"]
+                and u.weight_date
+                and not pd.isna(u.weight_date)
+            ):
                 demo["weight_date"] = u.weight_date.strftime(f"%d/%m/%Y")
 
     for i, (lid, l) in enumerate(plines.iterrows()):
@@ -133,15 +138,20 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                 except Exception:
                     pass
 
-            if not math.isnan(u.bsa) and not demo["bsa"]:
+            if hasattr(u, "bsa") and not math.isnan(u.bsa) and not demo["bsa"]:
                 demo["bsa"] = f"{u.bsa:.2f}"
                 bsa = bsa
 
-            if not math.isnan(u.weight) and not demo["weight"]:
+            if hasattr(u, "weight") and not math.isnan(u.weight) and not demo["weight"]:
                 weight = weight
                 demo["weight"] = f"{u.weight:.1}kg"
 
-            if not demo["weight_date"] and u.weight_date and not pd.isna(u.weight_date):
+            if (
+                not demo["weight_date"]
+                and hasattr(u, "weight_date")
+                and u.weight_date
+                and not pd.isna(u.weight_date)
+            ):
                 demo["weight_date"] = u.weight_date.strftime(f"%d/%m/%Y")
 
             for k, (mid, m) in enumerate(
@@ -236,10 +246,10 @@ def generate_patient(ds: dict[str, MedOnc], dataset: str, subject: Any):
         out += f"> L{i+ 1:02d}/{len(plines)}: {l.protocol}\n"
 
         for j, (uid, u) in enumerate(updates[updates["line_id"] == lid].iterrows()):
-            if not math.isnan(u.bsa):
+            if hasattr(u, "bsa") and not math.isnan(u.bsa):
                 bsa = u.bsa
 
-            if not math.isnan(u.weight):
+            if hasattr(u, "bsa") and not math.isnan(u.weight):
                 weight = u.weight
                 wstr = f" {u.weight:5.1f}kg, {u.bsa:.2f} BSA ({u.weight_date.date()})"
             else:
