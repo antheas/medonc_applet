@@ -168,7 +168,7 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
                             "fmgkg": lambda d, acc: (
                                 (d * weight) // 1 if weight else None
                             ),
-                            "fauc": lambda d, acc: None,
+                            "fauc": lambda d, acc: ((d * 1.2) // 1 * 100), # GFR of 95+round a bit
                             "rmgm2": lambda d, acc: (d // bsa if bsa else None),
                         }
                         start, end = match.span()
