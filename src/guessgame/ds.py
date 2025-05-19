@@ -382,6 +382,8 @@ def load_data(ds_path: str, ds_filter: list[str] | None = None):
 
     rounds = {}
     for k in sorted(list(os.listdir(round_dir))):
+        if not k.endswith(".json"):
+            continue
         try:
             rounds[k.replace(".json", "")] = json.load(open(os.path.join(round_dir, k)))
         except Exception:
