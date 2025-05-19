@@ -7,22 +7,35 @@ import random
 def sample_medonc(datadir: str, num: int):
     import pandas as pd
 
-    patients = pd.read_parquet(os.path.join(datadir, "patients.pq"), columns=["sex"])
+    patients = pd.read_parquet(
+        os.path.join(datadir, "patients.pq"), columns=["sex", "cancer"]
+    )
     lines = pd.read_parquet(os.path.join(datadir, "lines.pq"), columns=["id"])
     updates = pd.read_parquet(os.path.join(datadir, "updates.pq"), columns=["line_id"])
     medicine = pd.read_parquet(
         os.path.join(datadir, "medicine.pq"), columns=["update_id"]
     )
 
-    ids = sorted(
-        set(
-            medicine.merge(updates, left_on="update_id", right_index=True, how="inner")
-            .merge(lines, left_on="line_id", right_index=True, how="inner")
-            .merge(patients, left_on="id", right_index=True, how="inner")["id"]
+    out = []
+    for cancer in list(patients["cancer"].unique()):
+        ids = sorted(
+            set(
+                medicine.merge(
+                    updates, left_on="update_id", right_index=True, how="inner"
+                )
+                .merge(lines, left_on="line_id", right_index=True, how="inner")
+                .merge(
+                    patients[patients["cancer"] == cancer],
+                    left_on="id",
+                    right_index=True,
+                    how="inner",
+                )["id"]
+            )
         )
-    )
 
-    return random.sample(ids, num)
+        out.extend(random.sample(ids, num))
+
+    return out
 
 
 def main():
