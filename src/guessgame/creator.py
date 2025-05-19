@@ -12,28 +12,36 @@ def sample_medonc(datadir: str, num: int):
         os.path.join(datadir, "patients.pq"), columns=["sex", "cancer"]
     )
     lines = pd.read_parquet(os.path.join(datadir, "lines.pq"), columns=["id"])
-    updates = pd.read_parquet(os.path.join(datadir, "updates.pq"), columns=["line_id"])
+    updates = pd.read_parquet(
+        os.path.join(datadir, "updates.pq"), columns=["line_id", "bsa"]
+    )
     medicine = pd.read_parquet(
         os.path.join(datadir, "medicine.pq"), columns=["update_id"]
     )
 
     out = []
     for cancer in list(patients["cancer"].unique()):
-        ids = sorted(
-            set(
-                medicine.merge(
-                    updates, left_on="update_id", right_index=True, how="inner"
-                )
-                .merge(lines, left_on="line_id", right_index=True, how="inner")
-                .merge(
-                    patients[patients["cancer"] == cancer],
-                    left_on="id",
-                    right_index=True,
-                    how="inner",
-                )["id"]
+        d = (
+            medicine.merge(
+                updates,
+                left_on="update_id",
+                right_index=True,
+                how="inner",
             )
+            .merge(lines, left_on="line_id", right_index=True, how="inner")
+            .merge(
+                patients[patients["cancer"] == cancer],
+                left_on="id",
+                right_index=True,
+                how="inner",
+            )[["id", "bsa"]]
         )
 
+        vc = d['id'].value_counts()
+        long_enough = set(vc[vc >= 3].index)
+        has_bsa = set(d["id"][~pd.isna(d["bsa"])])
+
+        ids = sorted(long_enough.intersection(has_bsa))
         out.extend(random.sample(ids, num))
 
     return out
@@ -117,7 +125,7 @@ def main():
     os.makedirs(round_dir, exist_ok=True)
     with open(round_fn, "w") as f:
         json.dump(round_data, f)
-    
+
     print(f"\nCreated round:\n{round_fn}")
 
 
