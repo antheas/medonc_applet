@@ -213,6 +213,16 @@ def generate_patient_v2(ds: dict[str, MedOnc], dataset: str, subject: Any):
     if treat_date is not None:
         if not pd.isna(p["months_to_death"]) and p["months_to_death"] > 0:
             ddate = treat_date + pd.Timedelta(abs(p["months_to_death"]) * 30, "day")
+
+            # Doctors know the dataset ends in 2022, so prevent showing them
+            # death dates in years afterwards
+            if ddate.year >= 2022:
+                ddate = pd.Timestamp(
+                    year=2021,
+                    month=ddate.month,
+                    day=ddate.day
+                )
+
             demo["death"] = ddate.strftime(f"%d/%m/%Y")
             demo["age_death"] = f"{(ddate - p.birth).days / 365:.0f} years"
 
