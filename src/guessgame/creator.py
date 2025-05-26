@@ -9,7 +9,7 @@ def sample_medonc(datadir: str, num: int):
     import pandas as pd
 
     patients = pd.read_parquet(
-        os.path.join(datadir, "patients.pq"), columns=["sex", "cancer"]
+        os.path.join(datadir, "patients.pq"), columns=["sex"]
     )
     lines = pd.read_parquet(os.path.join(datadir, "lines.pq"), columns=["id"])
     updates = pd.read_parquet(
@@ -20,29 +20,28 @@ def sample_medonc(datadir: str, num: int):
     )
 
     out = []
-    for cancer in list(patients["cancer"].unique()):
-        d = (
-            medicine.merge(
-                updates,
-                left_on="update_id",
-                right_index=True,
-                how="inner",
-            )
-            .merge(lines, left_on="line_id", right_index=True, how="inner")
-            .merge(
-                patients[patients["cancer"] == cancer],
-                left_on="id",
-                right_index=True,
-                how="inner",
-            )[["id", "bsa"]]
+    d = (
+        medicine.merge(
+            updates,
+            left_on="update_id",
+            right_index=True,
+            how="inner",
         )
+        .merge(lines, left_on="line_id", right_index=True, how="inner")
+        .merge(
+            patients,
+            left_on="id",
+            right_index=True,
+            how="inner",
+        )[["id", "bsa"]]
+    )
 
-        vc = d['id'].value_counts()
-        long_enough = set(vc[vc >= 3].index)
-        has_bsa = set(d["id"][~pd.isna(d["bsa"])])
+    vc = d['id'].value_counts()
+    long_enough = set(vc[vc >= 3].index)
+    has_bsa = set(d["id"][~pd.isna(d["bsa"])])
 
-        ids = sorted(long_enough.intersection(has_bsa))
-        out.extend(random.sample(ids, num))
+    ids = sorted(long_enough.intersection(has_bsa))
+    out.extend(random.sample(ids, num))
 
     return out
 

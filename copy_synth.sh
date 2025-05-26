@@ -5,7 +5,8 @@ if [ -z "$1" ] || [ -z "$2" ]; then
     exit 1
 fi
 
-EXPERIMENT=medonc-v3
+EXPERIMENT=medonc-test
+VIEW=medonc
 DATASET_NAME=$1
 
 # Get timestamps:
@@ -18,8 +19,8 @@ OUT_DIR=experiments/$EXPERIMENT/data/$DATASET_NAME
 rm -rf $OUT_DIR
 mkdir -p $OUT_DIR
 
-cp -f $IN_DIR/view/medonc/metajson.json/$DATASET_TS/metajson.json $OUT_DIR/meta.json
-cp -f $IN_DIR/synth/medonc/mare/tables/lines.pq/$DATASET_TS/* $OUT_DIR
-cp -f $IN_DIR/synth/medonc/mare/tables/medicine.pq/$DATASET_TS/* $OUT_DIR
-cp -f $IN_DIR/synth/medonc/mare/tables/patients.pq/$DATASET_TS/* $OUT_DIR
-cp -f $IN_DIR/synth/medonc/mare/tables/updates.pq/$DATASET_TS/* $OUT_DIR
+cp -f $IN_DIR/view/$VIEW/metajson.json/$DATASET_TS/metajson.json $OUT_DIR/meta.json
+cp -f $IN_DIR/synth/$VIEW/mare/tables/lines.pq/$DATASET_TS/* $OUT_DIR
+cp -f $IN_DIR/synth/$VIEW/mare/tables/medicine.pq/$DATASET_TS/* $OUT_DIR
+cp -f $IN_DIR/synth/$VIEW/mare/tables/patients.pq/$DATASET_TS/* $OUT_DIR
+cp -f $IN_DIR/synth/$VIEW/mare/tables/updates.pq/$DATASET_TS/* $OUT_DIR
