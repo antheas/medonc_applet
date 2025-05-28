@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang='en'>
+
+{% if rounds is not defined %}
+{% set rounds = ({ }) %}
+{% endif %}
+{% if sessions is not defined %}
+{% set sessions = ({ }) %}
+{% endif %}
+
+<head>
+    <meta charset="utf-8" />
+    <title>Real or Synth</title>
+    <link href="{{ url_for('static', filename='bootstrap-4.0.0/css/bootstrap.min.css')}}" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static',
+    filename='stylesheet.css')}}" />
+
+    <style>
+        #patient {
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">Real or Synth</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">New Experiment</a>
+                    </li>
+                </ul>
+            </div>
+            <span class="navbar-text">Name: <span id="name">{{name}}</span></span>
+            </span>
+        </div>
+    </nav>
+
+    <div class="container align-items-center">
+    </div>
+    <script src="{{ url_for('static', filename='bootstrap-4.0.0/js/bootstrap.bundle.min.js')}}"></script>
+    <script src="{{ url_for('static', filename='jquery-3.7.1.min.js')}}"></script>
+</body>
+
+</html>

@@ -4,7 +4,6 @@ import logging
 from datetime import datetime
 from typing import cast
 from .ds import (
-    generate_patient,
     load_sessions,
     save_sessions,
     delete_session,
@@ -91,7 +90,7 @@ def delete():
     if session in updated:
         updated.remove(session)
 
-    # Sanitive name!!!
+    # Sanitise name!!!
     session = session.replace("/", "").replace("\\", "")
     delete_session(experiment, session)
 
@@ -193,6 +192,13 @@ def results():
         tries=len(session["subjects"]),
         time=int(sum(s["time"] for s in session["results"])),
         round=experiment["rounds"][session["round"]]["pretty"],
+    )
+
+
+@app.route("/report")
+def report():
+    return render_template(
+        "report.html",
     )
 
 
