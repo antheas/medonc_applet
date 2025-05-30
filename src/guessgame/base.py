@@ -197,9 +197,9 @@ def results():
 
 @app.route("/report")
 def report():
-    return render_template(
-        "report.html",
-    )
+    from .report import create_graph
+
+    return render_template("report.html", report=create_graph(experiment, sessions))
 
 
 def main():
